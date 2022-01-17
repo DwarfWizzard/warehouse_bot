@@ -7,7 +7,7 @@ import (
 	"github.com/DwarfWizzard/warehouse_bot/pkg/repository"
 	"github.com/DwarfWizzard/warehouse_bot/pkg/service"
 	"github.com/DwarfWizzard/warehouse_bot/pkg/telegram"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -31,7 +31,7 @@ func main() {
 		log.Fatalf("failied to init telegram bot: %s", err.Error())
 	}
 
-	botApi.Debug=true
+	botApi.Debug=false
 
 	bot := telegram.NewBot(botApi, services)
 
