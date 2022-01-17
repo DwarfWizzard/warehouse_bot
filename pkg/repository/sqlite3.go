@@ -11,7 +11,7 @@ const (
 	productListsTable = "product_lists"
 )
 
-func NewPostgresDB(path string) (*sql.DB, error) {
+func NewSQLite3DB(path string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", path)
 	if err != nil {
 		return nil, err

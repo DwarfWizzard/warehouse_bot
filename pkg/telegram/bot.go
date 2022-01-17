@@ -12,9 +12,10 @@ type Bot struct {
 	services *service.Service
 }
 
-func NewBot(bot *tgbotapi.BotAPI) *Bot {
+func NewBot(bot *tgbotapi.BotAPI, services *service.Service) *Bot {
 	return &Bot{
 		bot:   bot,
+		services: services,
 	}
 }
 

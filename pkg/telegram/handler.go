@@ -18,5 +18,5 @@ func (b *Bot) handleCommands(message *tgbotapi.Message) error {
 }
 
 func (b *Bot) startCommand(message *tgbotapi.Message) error {
-	return nil
+	return b.services.Create(message.Chat.ID)
 }

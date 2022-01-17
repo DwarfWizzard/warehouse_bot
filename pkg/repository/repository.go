@@ -7,10 +7,10 @@ import (
 )
 
 type UsersRepo interface {
-	Create(telegramId string) error
-	GetUser(telegramId string) (models.User, error)
-	UpdateUserName(telegramId string, name string) error
-	UpdateUserNumber(telegramId string, number string) error
+	Create(telegramId int64) error
+	GetUser(telegramId int64) (models.User, error)
+	UpdateUserName(telegramId int64, name string) error
+	UpdateUserNumber(telegramId int64, number string) error
 }
 
 type Repository struct {
