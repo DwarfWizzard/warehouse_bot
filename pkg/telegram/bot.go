@@ -25,17 +25,19 @@ func (b *Bot) Start() error {
 	updates := b.bot.GetUpdatesChan(u)
 
 	for update := range updates {
-		if update.Message != nil && update.Message.IsCommand() {
-			if err := b.handleCommands(update.Message); err != nil {
-				log.Print(err.Error())
-			}
-		} else if update.CallbackQuery != nil {
-			log.Println("q11231")
+		if update.CallbackQuery != nil {
 			if err := b.handleCallbacks(update.CallbackQuery); err != nil {
-				log.Print(err.Error())
+				log.Println(err.Error())
+			}
+		} else if update.Message != nil && update.Message.IsCommand() {
+			if err := b.handleCommands(update.Message); err != nil {
+				log.Println(err.Error())
+			}
+		} else if update.Message != nil {
+			if err := b.handleStandartMessages(update.Message); err != nil {
+				log.Println(err.Error())
 			}
 		}
-
 	}
 	return nil
 }

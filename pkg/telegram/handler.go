@@ -9,8 +9,10 @@ const (
 )
 
 const (
-	callbackPreRegYes = "pre_reg_yes"
-	callbackPreRegNo =  "pre_reg_no"
+	callbackPreRegYes  = "pre_reg_yes"
+	callbackPreRegNo   = "pre_reg_no"
+	callbackRegLastYes = "reg_last_yes"
+	callbackRegLastNo  = "reg_last_no"
 )
 
 func (b *Bot) handleCommands(message *tgbotapi.Message) error {
@@ -23,29 +25,17 @@ func (b *Bot) handleCommands(message *tgbotapi.Message) error {
 }
 
 func (b *Bot) handleCallbacks(callbackQuery *tgbotapi.CallbackQuery) error {
-
-	callback := tgbotapi.NewCallback(callbackQuery.ID, callbackQuery.Data)
+	callback := tgbotapi.NewCallback(callbackQuery.ID, "")
 	b.bot.Request(callback)
 
 	switch callbackQuery.Data {
 	case callbackPreRegYes, callbackPreRegNo:
-		
-	}
-	return nil
-}
-
-func (b *Bot) commandStart(message *tgbotapi.Message) error {
-	if err := b.services.Create(message.Chat.ID); err != nil {
-		return err
-	}
-
-	user, err := b.services.GetUser(message.Chat.ID)
-	if err != nil {
-		return err
-	}
-
-	if user.DialogueStatus == "pre_registration" {
-		err := b.messagePreRegistration(message)
+		err := b.callbackPreReg(callbackQuery)
+		if err != nil {
+			return err
+		}
+	case callbackRegLastYes, callbackRegLastNo:
+		err := b.callbackRegLast(callbackQuery)
 		if err != nil {
 			return err
 		}
@@ -53,6 +43,25 @@ func (b *Bot) commandStart(message *tgbotapi.Message) error {
 	return nil
 }
 
-func (b *Bot) callbackPreReg(callbackQuery *tgbotapi.CallbackQuery) error {
+func (b *Bot) handleStandartMessages(message *tgbotapi.Message) error {
+	user, err := b.services.GetUser(message.Chat.ID)
+	if err != nil {
+		return err
+	}
+
+	switch user.DialogueStatus {
+	case "registration_add-name":
+		err := b.standartMessageRegistrationName(message)
+		if err != nil {
+			return err
+		}
+
+	case "registration_add-number":
+		err := b.standartMessageRegistrationNumber(message)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

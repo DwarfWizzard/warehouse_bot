@@ -26,12 +26,12 @@ func (s *UserService) GetUser(telegramId int64) (models.User, error) {
 }
 
 func (s *UserService) UpdateUserName(telegramId int64, name string) error {
-	return nil
+	return s.repo.UpdateUserName(telegramId, name)
 }
 func (s *UserService) UpdateUserNumber(telegramId int64, number string) error {
-	return nil
+	return s.repo.UpdateUserNumber(telegramId, number)
 }
 
 func (s *UserService) UpdateUserStatus(telegramId int64, status string) error {
-	return nil
+	return s.repo.UpdateUserStatus(telegramId, status)
 }
