@@ -13,12 +13,20 @@ type Users interface {
 	UpdateUserStatus(telegramId int64, status string) error
 }
 
+type Products interface {
+	GetProducts(offset int) ([]models.Product, error)
+	CountAllProducts() (int, error)
+	CountProductsOnPage(offset int) (int, error)
+}
+
 type Service struct {
 	Users
+	Products
 }
 
 func NewService(repos *repository.Repository) *Service {
 	return &Service{
 		Users: NewUserService(repos.UsersRepo),
+		Products: NewProductsService(repos.ProductsRepo),
 	}
 }

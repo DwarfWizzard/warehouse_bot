@@ -1,11 +1,14 @@
 package telegram
 
 import (
+	"strings"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 const (
 	commandStart = "start"
+	commandProdList = "products"
 )
 
 const (
@@ -13,6 +16,7 @@ const (
 	callbackPreRegNo   = "pre_reg_no"
 	callbackRegLastYes = "reg_last_yes"
 	callbackRegLastNo  = "reg_last_no"
+	callbackChangePage = "ch_page"
 )
 
 func (b *Bot) handleCommands(message *tgbotapi.Message) error {
@@ -27,6 +31,13 @@ func (b *Bot) handleCommands(message *tgbotapi.Message) error {
 func (b *Bot) handleCallbacks(callbackQuery *tgbotapi.CallbackQuery) error {
 	callback := tgbotapi.NewCallback(callbackQuery.ID, "")
 	b.bot.Request(callback)
+
+	if strings.Contains(callbackQuery.Data, callbackChangePage) {
+		err := b.callbackChangePage(callbackQuery)
+		if err != nil {
+			return err
+		}
+	}
 
 	switch callbackQuery.Data {
 	case callbackPreRegYes, callbackPreRegNo:
@@ -44,24 +55,19 @@ func (b *Bot) handleCallbacks(callbackQuery *tgbotapi.CallbackQuery) error {
 }
 
 func (b *Bot) handleStandartMessages(message *tgbotapi.Message) error {
-	user, err := b.services.GetUser(message.Chat.ID)
+	err := b.registration(message)
 	if err != nil {
 		return err
 	}
 
-	switch user.DialogueStatus {
-	case "registration_add-name":
-		err := b.standartMessageRegistrationName(message)
+	switch message.Text {
+	case "Каталог":
+		err := b.standartMessageCatalog(message.Chat.ID)
 		if err != nil {
 			return err
 		}
-
-	case "registration_add-number":
-		err := b.standartMessageRegistrationNumber(message)
-		if err != nil {
-			return err
-		}
+	case "Корзина":
 	}
-
 	return nil
 }
+

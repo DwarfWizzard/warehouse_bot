@@ -1,6 +1,12 @@
 package telegram
 
-import tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+import (
+	"log"
+	"strconv"
+	"strings"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+)
 
 func (b *Bot) callbackPreReg(callbackQuery *tgbotapi.CallbackQuery) error {
 
@@ -10,7 +16,7 @@ func (b *Bot) callbackPreReg(callbackQuery *tgbotapi.CallbackQuery) error {
 	}
 
 	if callbackQuery.Data == callbackPreRegYes {
-		err := b.services.UpdateUserStatus(callbackQuery.Message.Chat.ID, "registration_add-name")
+		err := b.services.UpdateUserStatus(callbackQuery.From.ID, "registration_add-name")
 		if err != nil {
 			return err
 		}
@@ -31,8 +37,6 @@ func (b *Bot) callbackPreReg(callbackQuery *tgbotapi.CallbackQuery) error {
 			return err
 		}
 	}
-
-	
 
 	return nil
 }
@@ -61,5 +65,40 @@ func (b *Bot) callbackRegLast(callbackQuery *tgbotapi.CallbackQuery) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (b *Bot) callbackChangePage(callbackQuery *tgbotapi.CallbackQuery) error {
+	chatId := callbackQuery.From.ID
+	cbSplit := strings.Split(callbackQuery.Data, " ")
+	page, err := strconv.Atoi(cbSplit[1])
+	log.Println(page)
+	
+	if err != nil {
+		return err
+	}
+
+	offset := (page-1) * 5
+	log.Print(offset)
+
+	prodOnPage, err := b.services.CountProductsOnPage(offset)
+	log.Print(prodOnPage)
+
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i <= prodOnPage; i++ {
+		b.deleteMessage(chatId, callbackQuery.Message.MessageID-i)
+	}
+
+
+	productsList, err := b.generateProductsCardMessages(chatId, page)
+	if err != nil {
+		return err
+	}
+
+	b.sendMessages(productsList...)
+
 	return nil
 }

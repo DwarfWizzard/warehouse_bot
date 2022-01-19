@@ -14,12 +14,27 @@ type UsersRepo interface {
 	UpdateUserStatus(telegramId int64, status string) error
 }
 
+type ProductsRepo interface {
+	GetProducts(offset int) ([]models.Product, error)
+	CountAllProducts() (int, error)
+	CountProductsOnPage(offset int) (int, error) 
+}
+
+type ShopingCartRepo interface {
+	Create(userId int) error
+	Get(userId int) (models.Cart, error)
+	Update(userId int, newCart models.Cart) error
+	Delete(userId int) error
+ }
+
 type Repository struct {
 	UsersRepo
+	ProductsRepo
 }
 
 func NewRepository(db *sql.DB) *Repository {
 	return &Repository{
 		UsersRepo: NewUsersSQLite3(db),
+		ProductsRepo: NewProductsSQLite3(db),
 	}
 }
