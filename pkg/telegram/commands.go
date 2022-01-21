@@ -5,7 +5,7 @@ import (
 )
 
 func (b *Bot) commandStart(message *tgbotapi.Message) error {
-	if err := b.services.Create(message.Chat.ID); err != nil {
+	if err := b.services.CreateUser(message.Chat.ID); err != nil {
 		return err
 	}
 

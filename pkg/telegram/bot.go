@@ -29,11 +29,11 @@ func (b *Bot) Start() error {
 			if err := b.handleCallbacks(update.CallbackQuery); err != nil {
 				log.Println(err.Error())
 			}
-		} else if update.Message != nil && update.Message.IsCommand() {
+		} else if update.Message != nil && update.Message.IsCommand() && update.Message.Chat.ID > 1 {
 			if err := b.handleCommands(update.Message); err != nil {
 				log.Println(err.Error())
 			}
-		} else if update.Message != nil {
+		} else if update.Message != nil && update.Message.Chat.ID > 1{
 			if err := b.handleStandartMessages(update.Message); err != nil {
 				log.Println(err.Error())
 			}

@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"database/sql"
+	"github.com/jmoiron/sqlx"
 	"fmt"
 	"log"
 
@@ -9,10 +9,10 @@ import (
 )
 
 type ProductsSQLite3 struct {
-	db *sql.DB
+	db *sqlx.DB
 }
 
-func NewProductsSQLite3(db *sql.DB) *ProductsSQLite3 {
+func NewProductsSQLite3(db *sqlx.DB) *ProductsSQLite3 {
 	return &ProductsSQLite3{
 		db: db,
 	}
@@ -21,11 +21,12 @@ func NewProductsSQLite3(db *sql.DB) *ProductsSQLite3 {
 func (r *ProductsSQLite3) GetProducts(offset int) ([]models.Product, error) {
 	var products []models.Product
 
-	query := fmt.Sprintf("SELECT * FROM %s LIMIT 5 OFFSET $1", productsTable)
+	query := fmt.Sprintf("SELECT * FROM %s LIMIT 5 OFFSET $2", productsTable)
 	rows, err := r.db.Query(query, offset)
 	if err != nil {
 		return nil, err
 	}
+
 	defer rows.Close()
 
 	for rows.Next() {
@@ -41,7 +42,7 @@ func (r *ProductsSQLite3) GetProducts(offset int) ([]models.Product, error) {
 	return products, nil
 }
 
-func (r *ProductsSQLite3) CountAllProducts() (int, error) {
+func (r *ProductsSQLite3) CountProducts() (int, error) {
 	var count int
 
 	query := fmt.Sprintf("SELECT COUNT(*) FROM %s", productsTable)
@@ -54,7 +55,7 @@ func (r *ProductsSQLite3) CountAllProducts() (int, error) {
 func (r *ProductsSQLite3) CountProductsOnPage(offset int) (int, error) {
 	var count int
 
-	query := fmt.Sprintf("SELECT COUNT(*) FROM (SELECT * FROM %s LIMIT 5 OFFSET $1)", productsTable)
+	query := fmt.Sprintf("SELECT COUNT(*) FROM (SELECT * FROM %s LIMIT 5 OFFSET $2)", productsTable)
 	row := r.db.QueryRow(query, offset)
 
 	err := row.Scan(&count)

@@ -15,21 +15,17 @@ func NewUserService(repo repository.UsersRepo) *UserService {
 	}
 }
 
-func (s *UserService) Create(telegramId int64) error {
+func (s *UserService) CreateUser(telegramId int64) error {
 	return s.repo.Create(telegramId)
 }
 
 func (s *UserService) GetUser(telegramId int64) (models.User, error) {
 	user, err := s.repo.GetUser(telegramId)
-	
 	return user, err
 }
 
-func (s *UserService) UpdateUserName(telegramId int64, name string) error {
-	return s.repo.UpdateUserName(telegramId, name)
-}
-func (s *UserService) UpdateUserNumber(telegramId int64, number string) error {
-	return s.repo.UpdateUserNumber(telegramId, number)
+func (s *UserService) UpdateUser(telegramId int64, field string, value string) error {
+	return s.repo.UpdateUser(telegramId, field, value)
 }
 
 func (s *UserService) UpdateUserStatus(telegramId int64, status string) error {

@@ -15,3 +15,10 @@ var registrationLastBoard = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardButtonData("🔴", "reg_last_no"),
 	),
 )
+
+var menuKeyboard = tgbotapi.NewReplyKeyboard(
+	tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton("Каталог"),
+		tgbotapi.NewKeyboardButton("Корзина"),
+	),
+)

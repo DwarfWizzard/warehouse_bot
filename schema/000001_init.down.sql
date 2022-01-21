@@ -1,4 +1,4 @@
-DROP TABLE product_lists;
+DROP TABLE orders;
 
 DROP TABLE shoping_cart;
 

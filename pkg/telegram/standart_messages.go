@@ -28,7 +28,7 @@ func (b *Bot) registration(message *tgbotapi.Message) error {
 }
 
 func (b *Bot) standartMessageRegistrationName(message *tgbotapi.Message) error{
-	err := b.services.UpdateUserName(message.Chat.ID, message.Text)
+	err := b.services.UpdateUser(message.Chat.ID, "name", message.Text)
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func (b *Bot) standartMessageRegistrationName(message *tgbotapi.Message) error{
 }
 
 func (b *Bot) standartMessageRegistrationNumber(message *tgbotapi.Message) error{
-	err := b.services.UpdateUserNumber(message.Chat.ID, message.Text)
+	err := b.services.UpdateUser(message.Chat.ID, "number", message.Text)
 	if err != nil {
 		return err
 	}
@@ -55,21 +55,44 @@ func (b *Bot) standartMessageRegistrationNumber(message *tgbotapi.Message) error
 	if err != nil {
 		return err
 	}
-	
+
 	err = b.messageRegistrationLast(message.Chat.ID)
 	if err != nil {
 		return err
 	}
 	return nil
 }
-
-
 func (b *Bot) standartMessageCatalog(chatId int64) error {
-	productsList, err := b.generateProductsCardMessages(chatId, 1)
+	products, err := b.services.GetProducts(0)
 	if err != nil {
 		return err
 	}
 
+	productsList := b.generateProductListCardsMessages(products, chatId)
+
+	changePageMsg, err := b.generateChangePageMessage(chatId, 1)
+	if err != nil {
+		return err
+	}
+
+	productsList = append(productsList, changePageMsg)
+	b.sendMessages(productsList...)
+
+	return nil
+}
+
+func (b *Bot) standartMessageShopingCart(chatId int64) error {
+	order, err := b.services.GetOrder(chatId)
+	if err != nil {
+		return err
+	}
+
+	products, err := b.services.GetProductsFromCart(order.Id)
+	if err != nil {
+		return err
+	}
+
+	productsList := b.generateShopingCartProductCards(products, chatId)
 	b.sendMessages(productsList...)
 
 	return nil

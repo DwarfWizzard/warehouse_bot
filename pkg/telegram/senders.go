@@ -23,9 +23,9 @@ func (b *Bot) sendMessages(args... tgbotapi.MessageConfig) {
 	}
 }
 
-func (b *Bot) sendMessageWithKeyboard(chatId int64, text string, inlineKeyboard tgbotapi.InlineKeyboardMarkup) error {
+func (b *Bot) sendMessageWithKeyboard(chatId int64, text string, Keyboard interface{}) error {
 	msg := tgbotapi.NewMessage(chatId, text)
-	msg.ReplyMarkup = inlineKeyboard
+	msg.ReplyMarkup = Keyboard
 
 	_, err := b.bot.Send(msg)
 	return err

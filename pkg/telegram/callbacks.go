@@ -1,7 +1,6 @@
 package telegram
 
 import (
-	"log"
 	"strconv"
 	"strings"
 
@@ -44,7 +43,7 @@ func (b *Bot) callbackPreReg(callbackQuery *tgbotapi.CallbackQuery) error {
 func (b *Bot) callbackRegLast(callbackQuery *tgbotapi.CallbackQuery) error {
 
 	if callbackQuery.Data == callbackRegLastYes {
-		err := b.sendMessage(callbackQuery.From.ID, "Замечательно! Приятно с вами познакомиться :)")
+		err := b.sendMessageWithKeyboard(callbackQuery.From.ID, "Замечательно! Приятно с вами познакомиться :)", menuKeyboard)
 		if err != nil {
 			return err
 		}
@@ -72,17 +71,18 @@ func (b *Bot) callbackChangePage(callbackQuery *tgbotapi.CallbackQuery) error {
 	chatId := callbackQuery.From.ID
 	cbSplit := strings.Split(callbackQuery.Data, " ")
 	page, err := strconv.Atoi(cbSplit[1])
-	log.Println(page)
-	
 	if err != nil {
 		return err
 	}
 
 	offset := (page-1) * 5
-	log.Print(offset)
 
-	prodOnPage, err := b.services.CountProductsOnPage(offset)
-	log.Print(prodOnPage)
+	products, err := b.services.GetProducts(offset)
+	if err != nil {
+		return err
+	}
+
+	prodOnPage, err := b.services.CountProductsOnPage((page-2)*5)
 
 	if err != nil {
 		return err
@@ -93,12 +93,34 @@ func (b *Bot) callbackChangePage(callbackQuery *tgbotapi.CallbackQuery) error {
 	}
 
 
-	productsList, err := b.generateProductsCardMessages(chatId, page)
+	productsList := b.generateProductListCardsMessages(products, chatId)
+
+	changePageMsg, err := b.generateChangePageMessage(chatId, page)
 	if err != nil {
 		return err
 	}
 
+	productsList = append(productsList, changePageMsg)
+
 	b.sendMessages(productsList...)
 
 	return nil
+}
+
+func (b *Bot) callbackAddToCart(callbackQuery *tgbotapi.CallbackQuery) error {
+	chatId := callbackQuery.From.ID
+	cbSplit := strings.Split(callbackQuery.Data, " ")
+	productId, err := strconv.Atoi(cbSplit[1])
+	if err != nil {
+		return err
+	}
+
+	order, err := b.services.GetOrder(chatId)
+	if err != nil {
+		return err
+	}
+
+	err = b.services.CreateCart(order.Id, productId)
+
+	return err
 }

@@ -1,16 +1,16 @@
 package repository
 
 import (
-	"database/sql"
 	"fmt"
 
 	"github.com/DwarfWizzard/warehouse_bot/pkg/models"
+	"github.com/jmoiron/sqlx"
 )
 type UsersSQLite3 struct {
-	db *sql.DB
+	db *sqlx.DB
 }
 
-func NewUsersSQLite3(db *sql.DB) *UsersSQLite3 {
+func NewUsersSQLite3(db *sqlx.DB) *UsersSQLite3 {
 	return &UsersSQLite3{
 		db: db,
 	}
@@ -27,9 +27,7 @@ func (r *UsersSQLite3) GetUser(telegramId int64) (models.User, error) {
 	var user models.User
 
 	query := fmt.Sprintf("SELECT * FROM %s WHERE telegram_id=$1", usersTable)
-	row := r.db.QueryRow(query, telegramId)
-	
-	err := row.Scan(&user.Id, &user.TelegramId, &user.Name, &user.Number, &user.DialogueStatus)
+	err := r.db.Get(&user, query, telegramId)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -37,16 +35,9 @@ func (r *UsersSQLite3) GetUser(telegramId int64) (models.User, error) {
 	return user, nil
 }
 
-func (r *UsersSQLite3) UpdateUserName(telegramId int64, name string) error {
-	query := fmt.Sprintf("UPDATE %s SET name=$1 WHERE telegram_id=$2", usersTable)
-	_, err := r.db.Exec(query, name, telegramId)
-
-	return err
-}
-
-func (r *UsersSQLite3) UpdateUserNumber(telegramId int64, number string) error {
-	query := fmt.Sprintf("UPDATE %s SET number=$1 WHERE telegram_id=$2", usersTable)
-	_, err := r.db.Exec(query, number, telegramId)
+func (r *UsersSQLite3) UpdateUser(telegramId int64, field string, value string) error {
+	query := fmt.Sprintf("UPDATE %s SET %s=$1 WHERE telegram_id=$2", usersTable, field)
+	_, err := r.db.Exec(query, value, telegramId)
 
 	return err
 }

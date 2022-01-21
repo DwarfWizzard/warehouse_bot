@@ -17,6 +17,7 @@ const (
 	callbackRegLastYes = "reg_last_yes"
 	callbackRegLastNo  = "reg_last_no"
 	callbackChangePage = "ch_page"
+	callbackAddCart = "add_cart"
 )
 
 func (b *Bot) handleCommands(message *tgbotapi.Message) error {
@@ -34,6 +35,13 @@ func (b *Bot) handleCallbacks(callbackQuery *tgbotapi.CallbackQuery) error {
 
 	if strings.Contains(callbackQuery.Data, callbackChangePage) {
 		err := b.callbackChangePage(callbackQuery)
+		if err != nil {
+			return err
+		}
+	}
+
+	if strings.Contains(callbackQuery.Data, callbackAddCart) {
+		err := b.callbackAddToCart(callbackQuery)
 		if err != nil {
 			return err
 		}
@@ -67,7 +75,10 @@ func (b *Bot) handleStandartMessages(message *tgbotapi.Message) error {
 			return err
 		}
 	case "Корзина":
+		err := b.standartMessageShopingCart(message.Chat.ID)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
-

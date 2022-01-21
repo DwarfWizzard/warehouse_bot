@@ -6,27 +6,40 @@ import (
 )
 
 type Users interface {
-	Create(telegramId int64) error
+	CreateUser(telegramId int64) error
 	GetUser(telegramId int64) (models.User, error)
-	UpdateUserName(telegramId int64, name string) error
-	UpdateUserNumber(telegramId int64, number string) error
+	UpdateUser(telegramId int64, field string, value string) error
 	UpdateUserStatus(telegramId int64, status string) error
 }
 
 type Products interface {
 	GetProducts(offset int) ([]models.Product, error)
-	CountAllProducts() (int, error)
+	CountProducts() (int, error)
 	CountProductsOnPage(offset int) (int, error)
+}
+
+type ShopingCart interface {
+	CreateCart(orderId int, productId int) error 
+	GetProductsFromCart(orderId int) ([]models.Product, error)
+}
+
+type Order interface{
+	GetOrder(telegramId int64) (models.Order, error)
+	UpdateOrder(telegramId int64, field string, value string) error
 }
 
 type Service struct {
 	Users
 	Products
+	ShopingCart
+	Order
 }
 
 func NewService(repos *repository.Repository) *Service {
 	return &Service{
 		Users: NewUserService(repos.UsersRepo),
 		Products: NewProductsService(repos.ProductsRepo),
+		ShopingCart: NewShopingCartService(repos.ShopingCartRepo),
+		Order: NewOrderService(repos.OrderRepo),
 	}
 }
