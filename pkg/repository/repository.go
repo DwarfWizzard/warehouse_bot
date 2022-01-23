@@ -9,20 +9,23 @@ type UsersRepo interface {
 	Create(telegramId int64) error
 	GetUser(telegramId int64) (models.User, error)
 	UpdateUser(telegramId int64, field string, value string) error
-	UpdateUserStatus(telegramId int64, status string) error
 }
 
 type ProductsRepo interface {
+	GetProduct(productId int) (models.Product, error)
 	GetProducts(offset int) ([]models.Product, error)
 	CountProducts() (int, error)
 	CountProductsOnPage(offset int) (int, error) 
 }
 
 type ShopingCartRepo interface {
-	Create(orderId int, productId int) error 
-	GetProducts(orderId int) ([]models.Product, error)
+	Create(orderId int, productId int) error
+	GetCart(orderId int, productId int) (models.ShopingCart, error)
+	GetProductsFromCart(orderId int) ([]models.Product, error)
 	GetQuantity(orderId int, productId int) (int, error)
 	UpdateQuantity(orderId int, productId int, quantity int) error
+	DeleteCart(orderId int) error
+	DeleteProductFromCart(orderId int, productId int) error
 }
 
 type OrderRepo interface{

@@ -64,7 +64,7 @@ func (r *OrderSQLite3) UpdateOrder(telegramId int64, field string, value string)
 		return err
 	}
 
-	query = fmt.Sprintf("UPDATE %s SET %s=$1 WHERE user_id=$2 AND order_status=in_progress", ordersTable, field)
+	query = fmt.Sprintf("UPDATE %s SET %s=$1 WHERE user_id=$2 AND order_status=\"in_progress\"", ordersTable, field)
 	_, err = r.db.Exec(query, value, userId)
 	return err
 }

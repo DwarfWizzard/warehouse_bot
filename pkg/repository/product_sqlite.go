@@ -18,6 +18,14 @@ func NewProductsSQLite3(db *sqlx.DB) *ProductsSQLite3 {
 	}
 }
 
+func (r *ProductsSQLite3) GetProduct(productId int) (models.Product, error) {
+	var product models.Product
+	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1", productsTable)
+	err := r.db.Get(&product, query, productId)
+
+	return product, err
+}
+
 func (r *ProductsSQLite3) GetProducts(offset int) ([]models.Product, error) {
 	var products []models.Product
 

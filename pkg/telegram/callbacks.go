@@ -1,38 +1,39 @@
 package telegram
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
-	"unicode"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+//Регистрация
 func (b *Bot) callbackPreReg(callbackQuery *tgbotapi.CallbackQuery) error {
-
+	chatId := callbackQuery.From.ID
 	err := b.deleteReplyMarkup(callbackQuery.Message)
 	if err != nil {
 		return err
 	}
 
 	if callbackQuery.Data == callbackPreRegYes {
-		err := b.services.UpdateUserStatus(callbackQuery.From.ID, "registration_add-name")
+		err := b.services.UpdateUser(chatId, "dialogue_status", "registration_add-name")
 		if err != nil {
 			return err
 		}
 
-		err = b.sendMessage(callbackQuery.From.ID, "Хорошо. Пожалуйста, напишите ваше имя.")
+		err = b.sendMessage(chatId, "Хорошо. Пожалуйста, напишите ваше имя.")
 		if err != nil {
 			return err
 		}
 	}
 	if callbackQuery.Data == callbackPreRegNo {
-		err := b.services.UpdateUserStatus(callbackQuery.From.ID, "normal")
+		err := b.services.UpdateUser(chatId, "dialogue_status", "normal")
 		if err != nil {
 			return err
 		}
 
-		err = b.sendMessage(callbackQuery.From.ID, "Хорошо. При оформлении заказов, вам необходимо будет указывать эти данные.")
+		err = b.sendMessage(chatId, "Хорошо. При оформлении заказов, вам необходимо будет указывать эти данные.")
 		if err != nil {
 			return err
 		}
@@ -42,20 +43,21 @@ func (b *Bot) callbackPreReg(callbackQuery *tgbotapi.CallbackQuery) error {
 }
 
 func (b *Bot) callbackRegLast(callbackQuery *tgbotapi.CallbackQuery) error {
+	chatId := callbackQuery.From.ID
 
 	if callbackQuery.Data == callbackRegLastYes {
-		err := b.sendMessageWithKeyboard(callbackQuery.From.ID, "Замечательно! Приятно с вами познакомиться :)", menuKeyboard)
+		err := b.sendMessageWithKeyboard(chatId, "Замечательно! Приятно с вами познакомиться :)", menuKeyboard)
 		if err != nil {
 			return err
 		}
 	}
 	if callbackQuery.Data == callbackRegLastNo {
-		err := b.services.UpdateUserStatus(callbackQuery.From.ID, "registration_add-name")
+		err := b.services.UpdateUser(chatId, "dialogue_status", "registration_add-name")
 		if err != nil {
 			return err
 		}
 
-		err = b.sendMessage(callbackQuery.From.ID, "Хорошо. Пожалуйста, напишите ваше имя.")
+		err = b.sendMessage(chatId, "Хорошо. Пожалуйста, напишите ваше имя.")
 		if err != nil {
 			return err
 		}
@@ -68,6 +70,33 @@ func (b *Bot) callbackRegLast(callbackQuery *tgbotapi.CallbackQuery) error {
 	return nil
 }
 
+//Профиль
+func (b *Bot) callbackEditProfile(callbackQuery *tgbotapi.CallbackQuery) error {
+	chatId := callbackQuery.From.ID
+	err := b.deleteReplyMarkup(callbackQuery.Message)
+	if err != nil {
+		return err
+	}
+
+	err = b.closeKeyboard(chatId, "В процессе редактирования профиля функционал бота не доступен")
+	if err != nil {
+		return err
+	}
+
+	err = b.services.UpdateUser(chatId, "dialogue_status", "registration_add-name")
+	if err != nil {
+		return err
+	}
+
+	err = b.sendMessage(chatId, "Хорошо. Пожалуйста, напишите ваше имя.")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//Каталог
 func (b *Bot) callbackChangePage(callbackQuery *tgbotapi.CallbackQuery) error {
 	chatId := callbackQuery.From.ID
 	cbSplit := strings.Split(callbackQuery.Data, " ")
@@ -108,6 +137,7 @@ func (b *Bot) callbackChangePage(callbackQuery *tgbotapi.CallbackQuery) error {
 	return nil
 }
 
+//Корзина
 func (b *Bot) callbackAddToCart(callbackQuery *tgbotapi.CallbackQuery) error {
 	chatId := callbackQuery.From.ID
 	cbSplit := strings.Split(callbackQuery.Data, " ")
@@ -143,14 +173,14 @@ func (b *Bot) callbackReduceQuantity(callbackQuery *tgbotapi.CallbackQuery) erro
 		return err
 	}
 
-	if cbSplit[0] == "reduce_quantity_10" && quantity > 10 {
+	if cbSplit[0] == "reduce_quantity_10" {
 		quantity -= 10
 		err = b.services.UpdateQuantity(order.Id, productId, quantity)
 		if err != nil {
 			return err
 		}
 	}
-	if cbSplit[0] == "reduce_quantity_1" && quantity > 1 {
+	if cbSplit[0] == "reduce_quantity_1" {
 		quantity -= 1
 		err = b.services.UpdateQuantity(order.Id, productId, quantity)
 		if err != nil {
@@ -158,8 +188,23 @@ func (b *Bot) callbackReduceQuantity(callbackQuery *tgbotapi.CallbackQuery) erro
 		}
 	}
 
-	
-	err = b.updateMessage(callbackQuery.From.ID, callbackQuery.Message.MessageID, callbackQuery.Message.ReplyMarkup, messageWithQuantity(callbackQuery.Message.Text, quantity))
+	if quantity <= 0 {
+		err = b.services.DeleteProductFromCart(order.Id, productId)
+		if err != nil {
+			return err
+		}
+		err = b.deleteMessage(callbackQuery.From.ID, callbackQuery.Message.MessageID)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	newText, err := b.updatedCartProductCardText(order.Id, productId)
+	if err != nil {
+		return err
+	}
+	err = b.updateMessage(callbackQuery.From.ID, callbackQuery.Message.MessageID, callbackQuery.Message.ReplyMarkup, newText)
 	if err != nil {
 		return err
 	}
@@ -199,8 +244,11 @@ func (b *Bot) callbackIncreaseQuantity(callbackQuery *tgbotapi.CallbackQuery) er
 		}
 	}
 
-	
-	err = b.updateMessage(callbackQuery.From.ID, callbackQuery.Message.MessageID, callbackQuery.Message.ReplyMarkup, messageWithQuantity(callbackQuery.Message.Text, quantity))
+	newText, err := b.updatedCartProductCardText(order.Id, productId)
+	if err != nil {
+		return err
+	}
+	err = b.updateMessage(callbackQuery.From.ID, callbackQuery.Message.MessageID, callbackQuery.Message.ReplyMarkup, newText)
 	if err != nil {
 		return err
 	}
@@ -208,20 +256,163 @@ func (b *Bot) callbackIncreaseQuantity(callbackQuery *tgbotapi.CallbackQuery) er
 	return nil
 }
 
-func messageWithQuantity(text string, quantity int) string {
-	var oldQuantityString string = ""
-	i := strings.Index(text, "x")
-
-	for ; i<len(text); i++ {
-		if unicode.IsDigit(rune(text[i])) || rune(text[i]) == 'x' {
-			oldQuantityString = oldQuantityString + string(text[i])
-		} else {
-			break
-		}
+func (b *Bot) callbackDeleteFromCart(callbackQuery *tgbotapi.CallbackQuery) error{
+	cbSplit := strings.Split(callbackQuery.Data, " ")
+	productId, err := strconv.Atoi(cbSplit[1])
+	if err != nil {
+		return err
 	}
 
-	quantityString := "x"+strconv.Itoa(quantity)
+	order, err := b.services.GetOrder(callbackQuery.From.ID)
+	if err != nil {
+		return err
+	}
 
-	newString := strings.ReplaceAll(text, oldQuantityString, quantityString)
-	return newString
+	err = b.services.DeleteProductFromCart(order.Id, productId)
+	if err != nil {
+		return err
+	}
+
+	err = b.deleteMessage(callbackQuery.From.ID, callbackQuery.Message.MessageID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//Оформление заказа
+func (b *Bot) callbackPlaceAnOrderYes(callbackQuery *tgbotapi.CallbackQuery) error {
+	chatId := callbackQuery.From.ID
+
+	err := b.deleteReplyMarkup(callbackQuery.Message)
+	if err != nil {
+		return err
+	}
+
+	order, err := b.services.GetOrder(chatId)
+	if err != nil {
+		return err
+	}
+
+	products, err := b.services.GetProductsFromCart(order.Id)
+	if err != nil {
+		return err
+	}
+
+	if len(products) == 0 {
+		err = b.sendMessage(chatId, "Ваша корзина пуста")
+		return err
+	}
+
+	b.closeKeyboard(chatId, "В процессе оформления заказа вы не можете использовать весь функционал бота")
+	err = b.sendMessage(chatId, "Укажите адрес доставки.")
+	if err != nil {
+		return err
+	}
+
+	err = b.services.UpdateUser(chatId, "dialogue_status", "order_add-address")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (b *Bot) callbackPlaceAnOrderNo(callbackQuery *tgbotapi.CallbackQuery) error {
+	chatId := callbackQuery.From.ID
+
+	err := b.deleteReplyMarkup(callbackQuery.Message)
+	if err != nil {
+		return err
+	}
+
+	order, err := b.services.GetOrder(chatId)
+	if err != nil {
+		return err
+	}
+
+	err = b.services.UpdateOrder(chatId, "order_status", "denied")
+	if err != nil {
+		return err
+	}
+
+	err = b.services.DeleteCart(order.Id)
+	if err != nil {
+		return err
+	}
+
+	err = b.sendMessage(chatId, "Ваш заказ отменен")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//Редактирование заказа
+func (b *Bot) callbackEditOrderYes(callbackQuery *tgbotapi.CallbackQuery) error {
+	err := b.deleteReplyMarkup(callbackQuery.Message)
+	if err != nil {
+		return err
+	}
+
+	chatId := callbackQuery.From.ID
+
+	err = b.services.UpdateUser(chatId, "dialogue_status", "order_add-name")
+	if err != nil {
+		return err
+	}
+
+	err = b.sendMessage(chatId, "Укажите имя заказчика.")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (b *Bot) callbackEditOrderNo(callbackQuery *tgbotapi.CallbackQuery) error {
+	err := b.deleteReplyMarkup(callbackQuery.Message)
+	if err != nil {
+		return err
+	}
+
+	chatId := callbackQuery.From.ID
+
+	order, err := b.services.GetOrder(chatId)
+	if err != nil {
+		return err
+	}
+
+	err = b.services.UpdateUser(chatId, "dialogue_status", "normal")
+	if err != nil {
+		return err
+	}
+
+	err = b.services.UpdateOrder(chatId, "order_status", "finished")
+	if err != nil {
+		return err
+	}
+
+	err = b.sendMessageWithKeyboard(chatId, fmt.Sprintf("Отлично! Ваш заказ №%d отправлен в службу доставки. Когда вам заказ примут, вам придет сообщение с данными о курьере.", order.Id), menuKeyboard)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (b *Bot) updatedCartProductCardText(orderId int, productId int) (string, error) {
+	cart, err := b.services.GetCart(orderId, productId)
+	if err != nil {
+		return "", err
+	}
+
+	product, err := b.services.GetProduct(cart.ProductId)
+	if err != nil {
+		return "", err
+	}
+
+	newText := fmt.Sprintf("%s x%d\n\nЦена: %d.%d₽\n\nОписание: %s", product.Title, cart.Quantity, cart.Price/100, cart.Price%100, product.Description)
+	return newText, nil
 }

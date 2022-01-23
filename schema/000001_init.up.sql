@@ -8,13 +8,14 @@ CREATE TABLE users (
 CREATE TABLE products ( 
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
     title VARCHAR(255) DEFAULT "", 
-    price FLOAT DEFAULT "", 
+    price INTEGER DEFAULT 0, 
     description TEXT DEFAULT "" 
 );    
       
 CREATE TABLE shoping_cart ( 
     order_id INTEGER REFERENCES orders (id) NOT NULL, 
-    product_id INTEGER REFERENCES products (id) NOT NULL, 
+    product_id INTEGER REFERENCES products (id) NOT NULL,
+    price INTEGER DEFAULT 0,
     quantity INTEGER DEFAULT 1 
 );    
       

@@ -8,7 +8,7 @@ import (
 
 const (
 	commandStart    = "start"
-	commandProdList = "products"
+	commandMenu = "menu"
 )
 
 const (
@@ -20,12 +20,20 @@ const (
 	callbackAddCart          = "add_cart"
 	callbackReduceQuantity   = "reduce_quantity"
 	callbackIncreaseQuantity = "increase_quantity"
+	callbackEditProfileYes   = "edit_profile_yes"
+	callbackDeleteFromCart   = "delete_from_cart"
+	callbackPlaceAnOrderYes  = "place_an_order_yes"
+	callbackPlaceAnOrderNo   = "place_an_order_no"
+	callbackEditOrderYes     = "edit_order_yes"
+	callbackEditOrderNo     = "edit_order_no"
 )
 
 func (b *Bot) handleCommands(message *tgbotapi.Message) error {
 	switch message.Command() {
 	case commandStart:
 		return b.commandStart(message)
+	case commandMenu:
+		return b.openKeyboard(message.Chat.ID)
 	}
 	return nil
 
@@ -63,6 +71,13 @@ func (b *Bot) handleCallbacks(callbackQuery *tgbotapi.CallbackQuery) error {
 		}
 	}
 
+	if strings.Contains(callbackQuery.Data, callbackDeleteFromCart) {
+		err := b.callbackDeleteFromCart(callbackQuery)
+		if err != nil {
+			return err
+		}
+	}
+
 	switch callbackQuery.Data {
 	case callbackPreRegYes, callbackPreRegNo:
 		err := b.callbackPreReg(callbackQuery)
@@ -71,6 +86,31 @@ func (b *Bot) handleCallbacks(callbackQuery *tgbotapi.CallbackQuery) error {
 		}
 	case callbackRegLastYes, callbackRegLastNo:
 		err := b.callbackRegLast(callbackQuery)
+		if err != nil {
+			return err
+		}
+	case callbackEditProfileYes:
+		err := b.callbackEditProfile(callbackQuery)
+		if err != nil {
+			return err
+		}
+	case callbackPlaceAnOrderYes:
+		err := b.callbackPlaceAnOrderYes(callbackQuery)
+		if err != nil {
+			return err
+		}
+	case callbackPlaceAnOrderNo:
+		err := b.callbackPlaceAnOrderNo(callbackQuery)
+		if err != nil {
+			return err
+		}
+	case callbackEditOrderYes:
+		err := b.callbackEditOrderYes(callbackQuery)
+		if err != nil {
+			return err
+		}
+	case callbackEditOrderNo:
+		err := b.callbackEditOrderNo(callbackQuery)
 		if err != nil {
 			return err
 		}
@@ -84,6 +124,11 @@ func (b *Bot) handleStandartMessages(message *tgbotapi.Message) error {
 		return err
 	}
 
+	err = b.placeAnOrder(message)
+	if err != nil {
+		return err
+	}
+
 	switch message.Text {
 	case "Каталог":
 		err := b.standartMessageCatalog(message.Chat.ID)
@@ -92,6 +137,11 @@ func (b *Bot) handleStandartMessages(message *tgbotapi.Message) error {
 		}
 	case "Корзина":
 		err := b.standartMessageShopingCart(message.Chat.ID)
+		if err != nil {
+			return err
+		}
+	case "Профиль":
+		err := b.standartMessageProfile(message.Chat.ID)
 		if err != nil {
 			return err
 		}

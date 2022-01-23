@@ -41,10 +41,3 @@ func (r *UsersSQLite3) UpdateUser(telegramId int64, field string, value string) 
 
 	return err
 }
-
-func (r *UsersSQLite3) UpdateUserStatus(telegramId int64, status string) error {
-	query := fmt.Sprintf("UPDATE %s SET dialogue_status=$1 WHERE telegram_id=$2", usersTable)
-	_, err := r.db.Exec(query, status, telegramId)
-
-	return err
-}

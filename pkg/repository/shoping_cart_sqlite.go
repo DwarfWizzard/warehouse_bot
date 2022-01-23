@@ -18,21 +18,36 @@ func NewShopingCartSQLite3(db *sqlx.DB) *ShopingCartSQLite3 {
 }
 
 func (r *ShopingCartSQLite3) Create(orderId int, productId int) error {
-	query := fmt.Sprintf("INSERT INTO %s (order_id, product_id) VALUES ($1, $2)", shopingCartTable)
-	_, err := r.db.Exec(query, orderId, productId)
+	var product models.Product
+	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1", productsTable)
+	err := r.db.Get(&product, query, productId)
+	if err != nil {
+		return err
+	}
+
+	query = fmt.Sprintf("INSERT INTO %s (order_id, product_id, price) VALUES ($1, $2, $3)", shopingCartTable)
+	_, err = r.db.Exec(query, orderId, productId, product.Price)
 
 	return err
 }
 
-func (r *ShopingCartSQLite3) GetProducts(orderId int) ([]models.Product, error) {
+func (r *ShopingCartSQLite3) GetCart(orderId int, productId int) (models.ShopingCart, error) {
+	var cart models.ShopingCart
+	query := fmt.Sprintf("SELECT * FROM %s WHERE order_id=$1 AND product_id=$2", shopingCartTable)
+	err := r.db.Get(&cart, query, orderId, productId)
+
+	return cart, err
+}
+
+func (r *ShopingCartSQLite3) GetProductsFromCart(orderId int) ([]models.Product, error) {
 	var products []models.Product
 	
-	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.price, tl.description FROM %s tl INNER JOIN %s ul WHERE ul.order_id=$1 AND ul.product_id=tl.id;", productsTable, shopingCartTable)
+	query := fmt.Sprintf("SELECT tl.id, tl.title, ul.price, tl.description FROM %s tl INNER JOIN %s ul WHERE ul.order_id=$1 AND ul.product_id=tl.id;", productsTable, shopingCartTable)
 	err := r.db.Select(&products, query, orderId)
 	if err != nil {
 		return products, err
 	}
-
+	
 	return products, nil
 }
 
@@ -46,8 +61,22 @@ func (r *ShopingCartSQLite3) GetQuantity(orderId int, productId int) (int, error
 }
 
 func (r *ShopingCartSQLite3) UpdateQuantity(orderId int, productId int, quantity int) error {
-	query := fmt.Sprintf("UPDATE %s SET quantity=$1 WHERE order_id=$2 AND product_id=$3", shopingCartTable)
-	_, err := r.db.Exec(query, quantity, orderId, productId)
+	query := fmt.Sprintf("UPDATE %s SET quantity=$1, price=(SELECT price FROM %s WHERE id=$2)*$1 WHERE order_id=$3 AND product_id=$4", shopingCartTable, productsTable)
+	_, err := r.db.Exec(query, quantity, productId, orderId, productId)
+
+	return err
+}
+
+func (r *ShopingCartSQLite3) DeleteCart(orderId int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE order_id=$1", shopingCartTable)
+	_, err := r.db.Exec(query, orderId)
+	
+	return err
+}
+
+func (r *ShopingCartSQLite3) DeleteProductFromCart(orderId int, productId int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE order_id=$1 AND product_id=$2", shopingCartTable)
+	_, err := r.db.Exec(query, orderId, productId)
 
 	return err
 }

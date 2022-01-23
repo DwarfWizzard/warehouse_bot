@@ -15,6 +15,10 @@ func NewProductsService(repo repository.ProductsRepo) *ProductsService {
 	}
 }
 
+func (s *ProductsService) GetProduct(productId int) (models.Product, error) {
+	return s.repo.GetProduct(productId)
+}
+
 func (s *ProductsService) GetProducts(offset int) ([]models.Product, error) {
 	return s.repo.GetProducts(offset)
 }

@@ -10,7 +10,7 @@ import (
 func (b *Bot) generateProductListCardsMessages(products []models.Product, chatId int64) []tgbotapi.MessageConfig {
 	var productsCards []tgbotapi.MessageConfig
 	for _, product := range products {
-		productText := fmt.Sprintf("%s\n\nЦена:%s₽\n\nОписание:%s", product.Title, product.Price, product.Description)
+		productText := fmt.Sprintf("%s\n\nЦена: %d.%d₽\n\nОписание: %s", product.Title,product.Price/100, product.Price%100, product.Description)
 		productCard := tgbotapi.NewMessage(chatId, productText)
 		productCard.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 			tgbotapi.NewInlineKeyboardRow(
@@ -26,7 +26,7 @@ func (b *Bot) generateProductListCardsMessages(products []models.Product, chatId
 func (b *Bot) generateShopingCartProductCards(products []models.Product, chatId int64) []tgbotapi.MessageConfig {
 	var productsCards []tgbotapi.MessageConfig
 	for _, product := range products {
-		productText := fmt.Sprintf("%s x%d\n\nЦена:%s\n\nОписание:%s", product.Title, product.Quantity, product.Price, product.Description)
+		productText := fmt.Sprintf("%s x%d\n\nЦена: %d.%d₽\n\nОписание: %s", product.Title, product.Quantity, product.Price/100, product.Price%100, product.Description)
 		productCard := tgbotapi.NewMessage(chatId, productText)
 		productCard.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 			tgbotapi.NewInlineKeyboardRow(
