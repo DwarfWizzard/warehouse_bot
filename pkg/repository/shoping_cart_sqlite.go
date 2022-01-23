@@ -35,3 +35,19 @@ func (r *ShopingCartSQLite3) GetProducts(orderId int) ([]models.Product, error) 
 
 	return products, nil
 }
+
+func (r *ShopingCartSQLite3) GetQuantity(orderId int, productId int) (int, error) {
+	var quantity int
+
+	query := fmt.Sprintf("SELECT quantity FROM %s WHERE order_id=$1 AND product_id=$2", shopingCartTable)
+	err := r.db.Get(&quantity, query, orderId, productId)
+
+	return quantity, err
+}
+
+func (r *ShopingCartSQLite3) UpdateQuantity(orderId int, productId int, quantity int) error {
+	query := fmt.Sprintf("UPDATE %s SET quantity=$1 WHERE order_id=$2 AND product_id=$3", shopingCartTable)
+	_, err := r.db.Exec(query, quantity, orderId, productId)
+
+	return err
+}

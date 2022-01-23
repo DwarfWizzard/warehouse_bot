@@ -16,6 +16,13 @@ var registrationLastBoard = tgbotapi.NewInlineKeyboardMarkup(
 	),
 )
 
+var placeAnOrderBoard = tgbotapi.NewInlineKeyboardMarkup(
+	tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData("🟢", "place_an_order_yes"),
+		tgbotapi.NewInlineKeyboardButtonData("🔴", "place_an_order_no"),
+	),
+)
+
 var menuKeyboard = tgbotapi.NewReplyKeyboard(
 	tgbotapi.NewKeyboardButtonRow(
 		tgbotapi.NewKeyboardButton("Каталог"),

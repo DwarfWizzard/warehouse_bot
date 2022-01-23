@@ -13,7 +13,7 @@ func (b *Bot) sendMessage(chatId int64, text string) error {
 	return err
 }
 
-func (b *Bot) sendMessages(args... tgbotapi.MessageConfig) {
+func (b *Bot) sendMessages(args ...tgbotapi.MessageConfig) {
 	for _, arg := range args {
 		_, err := b.bot.Send(arg)
 		if err != nil {
@@ -31,11 +31,13 @@ func (b *Bot) sendMessageWithKeyboard(chatId int64, text string, Keyboard interf
 	return err
 }
 
-// func (b *Bot) messagePreRegistration(message *tgbotapi.Message) error {
-// 	"Здравствуйте! С вами на связи бот торговой базы. \nВас я вижу первый раз. \nНажмите на зеленую кнопку, если вы хотите сохранить свой номер телефона и ваше имя для оформления заказов. Если вы отказываетесь, то при оформлении каждого заказа вам нужно будет указывать эти данные.
-// }
+func (b *Bot) updateMessage(chatId int64, messageId int, keyboard *tgbotapi.InlineKeyboardMarkup, newText string) error {
+ 	editMsg := tgbotapi.NewEditMessageText(chatId, messageId, newText)
+	editMsg.ReplyMarkup = keyboard
+	_, err := b.bot.Send(editMsg)
 
-
+	return err
+}
 
 func (b *Bot) messageRegistrationLast(chatId int64) error {
 	user, err := b.services.GetUser(chatId)

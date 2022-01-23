@@ -20,14 +20,16 @@ func NewOrderService(repo repository.OrderRepo) *OrderService {
 func (s *OrderService) GetOrder(telegramId int64) (models.Order, error) {
 	var order models.Order
 	order, err := s.repo.GetOrder(telegramId)
-	
-	if err != nil && err.Error() == "sql: no rows in result set" {
+	if err != nil && (err.Error() == "sql: no rows in result set" || order.Id == 0) {
 		date := time.Now().Format("02.01.2006 15:04:05")
-		order, err := s.repo.Create(telegramId, date)
+		orderCreate, err := s.repo.Create(telegramId, date)
+
 		if err != nil {
-			return order, err
+			return orderCreate, err
 		}
-	} else if err != nil{
+
+		order = orderCreate
+	} else if err != nil {
 		return order, err
 	}
 

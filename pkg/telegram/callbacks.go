@@ -3,6 +3,7 @@ package telegram
 import (
 	"strconv"
 	"strings"
+	"unicode"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -123,4 +124,104 @@ func (b *Bot) callbackAddToCart(callbackQuery *tgbotapi.CallbackQuery) error {
 	err = b.services.CreateCart(order.Id, productId)
 
 	return err
+}
+
+func (b *Bot) callbackReduceQuantity(callbackQuery *tgbotapi.CallbackQuery) error {
+	cbSplit := strings.Split(callbackQuery.Data, " ")
+	productId, err := strconv.Atoi(cbSplit[1])
+	if err != nil {
+		return err
+	}
+
+	order, err := b.services.GetOrder(callbackQuery.From.ID)
+	if err != nil {
+		return err
+	}
+
+	quantity, err := b.services.GetQuantity(order.Id, productId)
+	if err != nil {
+		return err
+	}
+
+	if cbSplit[0] == "reduce_quantity_10" && quantity > 10 {
+		quantity -= 10
+		err = b.services.UpdateQuantity(order.Id, productId, quantity)
+		if err != nil {
+			return err
+		}
+	}
+	if cbSplit[0] == "reduce_quantity_1" && quantity > 1 {
+		quantity -= 1
+		err = b.services.UpdateQuantity(order.Id, productId, quantity)
+		if err != nil {
+			return err
+		}
+	}
+
+	
+	err = b.updateMessage(callbackQuery.From.ID, callbackQuery.Message.MessageID, callbackQuery.Message.ReplyMarkup, messageWithQuantity(callbackQuery.Message.Text, quantity))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (b *Bot) callbackIncreaseQuantity(callbackQuery *tgbotapi.CallbackQuery) error {
+	cbSplit := strings.Split(callbackQuery.Data, " ")
+	productId, err := strconv.Atoi(cbSplit[1])
+	if err != nil {
+		return err
+	}
+
+	order, err := b.services.GetOrder(callbackQuery.From.ID)
+	if err != nil {
+		return err
+	}
+
+	quantity, err := b.services.GetQuantity(order.Id, productId)
+	if err != nil {
+		return err
+	}
+
+	if cbSplit[0] == "increase_quantity_10"{
+		quantity += 10
+		err = b.services.UpdateQuantity(order.Id, productId, quantity)
+		if err != nil {
+			return err
+		}
+	}
+	if cbSplit[0] == "increase_quantity_1"{
+		quantity += 1
+		err = b.services.UpdateQuantity(order.Id, productId, quantity)
+		if err != nil {
+			return err
+		}
+	}
+
+	
+	err = b.updateMessage(callbackQuery.From.ID, callbackQuery.Message.MessageID, callbackQuery.Message.ReplyMarkup, messageWithQuantity(callbackQuery.Message.Text, quantity))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func messageWithQuantity(text string, quantity int) string {
+	var oldQuantityString string = ""
+	i := strings.Index(text, "x")
+
+	for ; i<len(text); i++ {
+		if unicode.IsDigit(rune(text[i])) || rune(text[i]) == 'x' {
+			oldQuantityString = oldQuantityString + string(text[i])
+		} else {
+			break
+		}
+	}
+
+	quantityString := "x"+strconv.Itoa(quantity)
+
+	newString := strings.ReplaceAll(text, oldQuantityString, quantityString)
+	return newString
 }

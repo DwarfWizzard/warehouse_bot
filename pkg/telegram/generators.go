@@ -26,13 +26,13 @@ func (b *Bot) generateProductListCardsMessages(products []models.Product, chatId
 func (b *Bot) generateShopingCartProductCards(products []models.Product, chatId int64) []tgbotapi.MessageConfig {
 	var productsCards []tgbotapi.MessageConfig
 	for _, product := range products {
-		productText := fmt.Sprintf("%s\n\nЦена:%s\n\nОписание:%s", product.Title, product.Price, product.Description)
+		productText := fmt.Sprintf("%s x%d\n\nЦена:%s\n\nОписание:%s", product.Title, product.Quantity, product.Price, product.Description)
 		productCard := tgbotapi.NewMessage(chatId, productText)
 		productCard.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 			tgbotapi.NewInlineKeyboardRow(
 				tgbotapi.NewInlineKeyboardButtonData("-10", fmt.Sprintf("reduce_quantity_10 %d", product.Id)),
 				tgbotapi.NewInlineKeyboardButtonData("-1", fmt.Sprintf("reduce_quantity_1 %d", product.Id)),
-				tgbotapi.NewInlineKeyboardButtonData("+1", fmt.Sprintf("increase_quantity_10 %d", product.Id)),
+				tgbotapi.NewInlineKeyboardButtonData("+1", fmt.Sprintf("increase_quantity_1 %d", product.Id)),
 				tgbotapi.NewInlineKeyboardButtonData("+10", fmt.Sprintf("increase_quantity_10 %d", product.Id)),
 			),
 			tgbotapi.NewInlineKeyboardRow(

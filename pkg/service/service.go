@@ -21,11 +21,14 @@ type Products interface {
 type ShopingCart interface {
 	CreateCart(orderId int, productId int) error 
 	GetProductsFromCart(orderId int) ([]models.Product, error)
+	GetQuantity(orderId int, productId int) (int, error)
+	UpdateQuantity(orderId int, productId int, quantity int) error
 }
 
 type Order interface{
 	GetOrder(telegramId int64) (models.Order, error)
 	UpdateOrder(telegramId int64, field string, value string) error
+	
 }
 
 type Service struct {

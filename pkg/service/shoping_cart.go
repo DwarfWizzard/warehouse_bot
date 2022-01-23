@@ -23,5 +23,24 @@ func (s *ShopingCartService) GetProductsFromCart(orderId int) ([]models.Product,
 	var products []models.Product
 
 	products, err := s.repo.GetProducts(orderId)
+	if err != nil {
+		return products, err
+	}
+
+	for i := range products {
+		products[i].Quantity, err = s.repo.GetQuantity(orderId, products[i].Id)
+		if err != nil {
+			return products, err
+		}
+	}
+
 	return products, err
+}
+
+func (s *ShopingCartService) GetQuantity(orderId int, productId int) (int, error) {
+	return s.repo.GetQuantity(orderId, productId)
+}
+
+func (s *ShopingCartService) UpdateQuantity(orderId int, productId int, quantity int) error {
+	return s.repo.UpdateQuantity(orderId, productId, quantity)
 }

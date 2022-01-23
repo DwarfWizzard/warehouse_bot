@@ -7,17 +7,19 @@ import (
 )
 
 const (
-	commandStart = "start"
+	commandStart    = "start"
 	commandProdList = "products"
 )
 
 const (
-	callbackPreRegYes  = "pre_reg_yes"
-	callbackPreRegNo   = "pre_reg_no"
-	callbackRegLastYes = "reg_last_yes"
-	callbackRegLastNo  = "reg_last_no"
-	callbackChangePage = "ch_page"
-	callbackAddCart = "add_cart"
+	callbackPreRegYes        = "pre_reg_yes"
+	callbackPreRegNo         = "pre_reg_no"
+	callbackRegLastYes       = "reg_last_yes"
+	callbackRegLastNo        = "reg_last_no"
+	callbackChangePage       = "ch_page"
+	callbackAddCart          = "add_cart"
+	callbackReduceQuantity   = "reduce_quantity"
+	callbackIncreaseQuantity = "increase_quantity"
 )
 
 func (b *Bot) handleCommands(message *tgbotapi.Message) error {
@@ -42,6 +44,20 @@ func (b *Bot) handleCallbacks(callbackQuery *tgbotapi.CallbackQuery) error {
 
 	if strings.Contains(callbackQuery.Data, callbackAddCart) {
 		err := b.callbackAddToCart(callbackQuery)
+		if err != nil {
+			return err
+		}
+	}
+
+	if strings.Contains(callbackQuery.Data, callbackReduceQuantity) {
+		err := b.callbackReduceQuantity(callbackQuery)
+		if err != nil {
+			return err
+		}
+	}
+
+	if strings.Contains(callbackQuery.Data, callbackIncreaseQuantity) {
+		err := b.callbackIncreaseQuantity(callbackQuery)
 		if err != nil {
 			return err
 		}

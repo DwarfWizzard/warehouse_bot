@@ -21,6 +21,8 @@ type ProductsRepo interface {
 type ShopingCartRepo interface {
 	Create(orderId int, productId int) error 
 	GetProducts(orderId int) ([]models.Product, error)
+	GetQuantity(orderId int, productId int) (int, error)
+	UpdateQuantity(orderId int, productId int, quantity int) error
 }
 
 type OrderRepo interface{

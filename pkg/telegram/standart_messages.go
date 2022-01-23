@@ -27,7 +27,7 @@ func (b *Bot) registration(message *tgbotapi.Message) error {
 	return nil
 }
 
-func (b *Bot) standartMessageRegistrationName(message *tgbotapi.Message) error{
+func (b *Bot) standartMessageRegistrationName(message *tgbotapi.Message) error {
 	err := b.services.UpdateUser(message.Chat.ID, "name", message.Text)
 	if err != nil {
 		return err
@@ -45,7 +45,7 @@ func (b *Bot) standartMessageRegistrationName(message *tgbotapi.Message) error{
 	return nil
 }
 
-func (b *Bot) standartMessageRegistrationNumber(message *tgbotapi.Message) error{
+func (b *Bot) standartMessageRegistrationNumber(message *tgbotapi.Message) error {
 	err := b.services.UpdateUser(message.Chat.ID, "number", message.Text)
 	if err != nil {
 		return err
@@ -93,7 +93,9 @@ func (b *Bot) standartMessageShopingCart(chatId int64) error {
 	}
 
 	productsList := b.generateShopingCartProductCards(products, chatId)
+
 	b.sendMessages(productsList...)
+	b.sendMessageWithKeyboard(chatId, "Нажмите на зеленую кнопку, чтобы оформить заказ.\nКрасную, чтобы отказаться.", placeAnOrderBoard)
 
 	return nil
 }
