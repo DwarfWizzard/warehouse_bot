@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/DwarfWizzard/warehouse_bot/pkg/repository"
 	"github.com/DwarfWizzard/warehouse_bot/pkg/service"
@@ -22,8 +24,19 @@ func main() {
 		log.Fatalf("failed to initialize db: %s", err.Error())
 	}
 
+	year, month, day := time.Now().Date()
+
+	infoLogFile, err := os.OpenFile("logs/"+fmt.Sprintf("info_%v-%v-%v.log", year, month, day), os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		log.Fatalf("run error: %s", err.Error())
+	}
+	errLogFile, err := os.OpenFile("logs/"+fmt.Sprintf("err_%v-%v-%v.log", year, month, day), os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		log.Fatalf("run error: %s", err.Error())
+	}
+
 	repos := repository.NewRepository(db)
-	services := service.NewService(repos)
+	services := service.NewService(repos, infoLogFile, errLogFile)
 
 	key := os.Getenv("KEY")
 	botApi, err := tgbotapi.NewBotAPI(key)

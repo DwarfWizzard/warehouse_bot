@@ -2,6 +2,8 @@ package telegram
 
 import (
 	"fmt"
+	"log"
+	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -21,6 +23,28 @@ func (b *Bot) registration(message *tgbotapi.Message) error {
 
 	case "registration_add-number":
 		err := b.standartMessageRegistrationNumber(message)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (b *Bot) courierRegistration(message *tgbotapi.Message) error {
+	courier, err := b.services.GetCourier(message.Chat.ID)
+	if err != nil && err.Error() != ""{
+		return err
+	}
+
+	switch courier.DialogueStatus {
+	case "registration_add-name":
+		err = b.courierRegistrationAddName(message)
+		if err != nil {
+			return err
+		}
+	case "registration_add-number":
+		err = b.courierRegistrationAddNumber(message)
 		if err != nil {
 			return err
 		}
@@ -85,6 +109,7 @@ func (b *Bot) standartMessageRegistrationNumber(message *tgbotapi.Message) error
 
 	err = b.services.UpdateUser(chatId, "dialogue_status", "normal")
 	if err != nil {
+		log.Println(12312)
 		return err
 	}
 
@@ -94,6 +119,47 @@ func (b *Bot) standartMessageRegistrationNumber(message *tgbotapi.Message) error
 	}
 	return nil
 }
+
+func (b *Bot) courierRegistrationAddName(message *tgbotapi.Message) error {
+	chatId := message.Chat.ID
+	err := b.services.UpdateCourier(chatId, "name", message.Text)
+	if err != nil {
+		return err
+	}
+
+	err = b.services.UpdateCourier(chatId, "dialogue_status", "registration_add-number")
+	if err != nil {
+		return err
+	}
+
+	err = b.sendMessage(chatId, "Отлично, теперь укажите ваш номер телефона.")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (b *Bot) courierRegistrationAddNumber(message *tgbotapi.Message) error {
+	chatId := message.Chat.ID
+	err := b.services.UpdateCourier(chatId, "number", message.Text)
+	if err != nil {
+		return err
+	}
+
+	err = b.services.UpdateCourier(chatId, "dialogue_status", "normal")
+	if err != nil {
+		return err
+	}
+
+	err = b.messageCourierRegistrationLast(chatId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (b *Bot) standartMessageCatalog(chatId int64) error {
 	products, err := b.services.GetProducts(0)
 	if err != nil {
@@ -174,7 +240,7 @@ func (b *Bot) standartMessageAddOrderNumber(message *tgbotapi.Message) error {
 }
 
 func (b *Bot) standartMessageShopingCart(chatId int64) error {
-	order, err := b.services.GetOrder(chatId)
+	order, err := b.services.GetOrderByUser(chatId)
 	if err != nil {
 		return err
 	}
@@ -203,5 +269,84 @@ func (b *Bot) standartMessageProfile(chatId int64) error {
 	}
 
 	b.sendMessageWithKeyboard(chatId, fmt.Sprintf("Ваш профиль.\n\nИмя: %s\n\nНомер телефона: %s\n\nРедактировать профиль?", user.Name, user.Number), editProfileBoard)
+	return nil
+}
+
+func (b *Bot) standartMessageCourierPreReg(chatId int64) error{
+	courier, err := b.services.GetCourier(chatId)
+	if err != nil && !strings.Contains(err.Error(), "sql: no rows in result set"){
+		return err
+	}
+	
+	err = b.services.DeleteUser(chatId)
+	if err != nil && !strings.Contains(err.Error(), "sql: no rows in result set"){
+		return err
+	}
+
+	if courier.Id == 0 {
+		err := b.services.CreateCourier(chatId)
+		if err != nil {
+			return err
+		}
+
+		err = b.services.UpdateCourier(chatId, "dialogue_status", "registration_add-name")
+		if err != nil {
+			return err
+		}
+
+		b.sendMessage(chatId, "Здравствуйте, курьер!\nПожалуйста, напишите ваше имя.")
+	} else {
+		b.sendMessage(chatId, "Вы уже зарегистрированы в системе.")
+	}
+	return nil
+}
+
+func (b *Bot) standartMessageCourierActiveOrders(chatId int64) error {
+	courier, err := b.services.GetCourier(chatId)
+	if err != nil {
+		return err
+	}
+
+	orders, err := b.services.GetActiveOrders(courier.Id)
+	if err != nil {
+		return err
+	}
+
+	orderCards := b.generateActiveOrderCards(orders, chatId)
+	
+	b.sendMessages(orderCards...)
+
+	return nil
+}
+
+func (b *Bot) standartMessageCourierAllOrders(chatId int64) error {
+	courier, err := b.services.GetCourier(chatId)
+	if err != nil {
+		return err
+	}
+
+	orders, err := b.services.GetOrders(courier.Id)
+	if err != nil {
+		return err
+	}
+
+	orderCards := b.generateAllOrderCards(orders, chatId)
+	
+	b.sendMessages(orderCards...)
+
+	return nil
+}
+
+func (b *Bot) standartMessageCourierProfile(chatId int64) error {
+	courier, err := b.services.GetCourier(chatId)
+	if err != nil {
+		return err
+	}
+	
+	err = b.sendMessageWithKeyboard(chatId, fmt.Sprintf("Ваш профиль.\n\nИмя: %s\n\nНомер телефона: %s\n\nРедактировать профиль?", courier.Name, courier.Number), editCourierProfileBoard)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

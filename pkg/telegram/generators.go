@@ -2,29 +2,50 @@ package telegram
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
 
 	"github.com/DwarfWizzard/warehouse_bot/pkg/models"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func (b *Bot) generateProductListCardsMessages(products []models.Product, chatId int64) []tgbotapi.MessageConfig {
-	var productsCards []tgbotapi.MessageConfig
+func (b *Bot) generateProductListCardsMessages(products []models.Product, chatId int64) []tgbotapi.Chattable {
+	var productsCards []tgbotapi.Chattable
 	for _, product := range products {
-		productText := fmt.Sprintf("%s\n\nЦена: %d.%d₽\n\nОписание: %s", product.Title,product.Price/100, product.Price%100, product.Description)
-		productCard := tgbotapi.NewMessage(chatId, productText)
-		productCard.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
+
+		productText := fmt.Sprintf("%s\n\nЦена: %d.%d₽\n\nОписание: %s", product.Title, product.Price/100, product.Price%100, product.Description)
+		photoBytes, err := ioutil.ReadFile(os.Getenv("IMAGE_PATH")+"/"+product.ImageName)
+		if err != nil {
+			productCard := tgbotapi.NewMessage(chatId, productText)
+			productCard.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 			tgbotapi.NewInlineKeyboardRow(
 				tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину", fmt.Sprintf("add_cart %d", product.Id)),
-			),
-		)
+				),
+			)
+			productsCards = append(productsCards, productCard)
+		} else {
+			file := tgbotapi.FileBytes {
+				Name: "asd",
+				Bytes: photoBytes,
+			}
 
-		productsCards = append(productsCards, productCard)
+			productCard := tgbotapi.NewPhoto(chatId, file)
+			productCard.Caption = productText
+			productCard.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
+				tgbotapi.NewInlineKeyboardRow(
+					tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину", fmt.Sprintf("add_cart %d", product.Id)),
+				),
+			)
+			productsCards = append(productsCards, productCard)
+		}
+
 	}
 	return productsCards
 }
 
-func (b *Bot) generateShopingCartProductCards(products []models.Product, chatId int64) []tgbotapi.MessageConfig {
-	var productsCards []tgbotapi.MessageConfig
+func (b *Bot) generateShopingCartProductCards(products []models.Product, chatId int64) []tgbotapi.Chattable {
+	var productsCards []tgbotapi.Chattable
 	for _, product := range products {
 		productText := fmt.Sprintf("%s x%d\n\nЦена: %d.%d₽\n\nОписание: %s", product.Title, product.Quantity, product.Price/100, product.Price%100, product.Description)
 		productCard := tgbotapi.NewMessage(chatId, productText)
@@ -48,7 +69,7 @@ func (b *Bot) generateShopingCartProductCards(products []models.Product, chatId 
 func (b *Bot) generateChangePageMessage(chatId int64, page int) (tgbotapi.MessageConfig, error) {
 	productsNum, err := b.services.CountProducts()
 	if err != nil {
-		return  tgbotapi.MessageConfig{}, err
+		return tgbotapi.MessageConfig{}, err
 	}
 
 	var pageNum int
@@ -57,7 +78,6 @@ func (b *Bot) generateChangePageMessage(chatId int64, page int) (tgbotapi.Messag
 	} else {
 		pageNum = productsNum / 5
 	}
-
 
 	pageMsg := tgbotapi.NewMessage(chatId, fmt.Sprintf("%d/%d", page, pageNum))
 
@@ -93,8 +113,70 @@ func generateChangeKeyboard(state int, valueLeft string, valueRight string) tgbo
 
 	productsChangeKeyboard := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			buttons...
+			buttons...,
 		),
 	)
 	return productsChangeKeyboard
+}
+
+func (b *Bot) generateActiveOrderCards(orders []models.Order, chatId int64) []tgbotapi.Chattable {
+	var orderCards []tgbotapi.Chattable
+	for _, order := range orders {
+		orderText, err := b.generateOrderText(order)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		orderCard := tgbotapi.NewMessage(chatId, orderText)
+		orderCard.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
+			tgbotapi.NewInlineKeyboardRow(
+				tgbotapi.NewInlineKeyboardButtonData("Завершить заказ", fmt.Sprintf("finish_order %d", order.Id)),
+			),
+		)
+
+		orderCards = append(orderCards, orderCard)
+	}
+
+	return orderCards
+}
+
+func (b *Bot) generateAllOrderCards(orders []models.Order, chatId int64) []tgbotapi.Chattable {
+	var orderCards []tgbotapi.Chattable
+	for _, order := range orders {
+		orderText, err := b.generateOrderText(order)
+		if err != nil {
+			b.services.PrintLog(err.Error(), 1)
+			continue
+		}
+
+		status, err := b.services.GetOrderStatus(order.Id)
+		if err != nil {
+			b.services.PrintLog(err.Error(), 1)
+			continue
+		}
+		orderText += fmt.Sprintf("\n\nСтатус заказа: %s", status)
+		orderCard := tgbotapi.NewMessage(chatId, orderText)
+
+		orderCards = append(orderCards, orderCard)
+	}
+
+	return orderCards
+}
+
+func (b *Bot) generateOrderText(order models.Order) (string, error) {
+	products, err := b.services.GetProductsFromCart(order.Id)
+	if err != nil {
+		return "", err
+	}
+
+	var productListText string = fmt.Sprintf("Заказ №%d\n\nСписок продуктов:\n", order.Id)
+	var totalPrice int
+	for i, product := range products {
+		productListText += fmt.Sprintf("\t%d. %s x%d %d.%d₽\n\n", i+1, product.Title, product.Quantity, (product.Price*product.Quantity)/100, (product.Price*product.Quantity)%100)
+		totalPrice += product.Price * product.Quantity
+	}
+
+	productListText += fmt.Sprintf("Общая сумма заказа: %d.%d₽\n\nДанные о заказчике:\n\tИмя заказчика: %s\n\tНомер заказчика: %s\n\tАдрес доставки: %s", totalPrice/100, totalPrice%100, order.UserName, order.UserNumber, order.DeliveryAdress)
+
+	return productListText, nil
 }

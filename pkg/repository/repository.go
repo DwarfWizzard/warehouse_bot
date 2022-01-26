@@ -9,13 +9,29 @@ type UsersRepo interface {
 	Create(telegramId int64) error
 	GetUser(telegramId int64) (models.User, error)
 	UpdateUser(telegramId int64, field string, value string) error
+	DeleteUser(telegramId int64) error
+}
+
+type CouriersRepo interface {
+	Create(telegramId int64) error
+	GetCourier(telegramId int64) (models.Courier, error)
+	UpdateCourier(telegramId int64, field string, value string) error
+}
+
+type CouriersOrdersRepo interface {
+	Create(orderId int, courierId int) error
+	GetCourier(orderId int) (models.Courier, error)
+	GetActiveOrders(courierId int) ([]models.Order, error)
+	GetOrders(courierId int) ([]models.Order, error)
+	Update(orderId int, field string, value string) error
+	GetOrderStatus(orderId int) (string, error)
 }
 
 type ProductsRepo interface {
 	GetProduct(productId int) (models.Product, error)
 	GetProducts(offset int) ([]models.Product, error)
 	CountProducts() (int, error)
-	CountProductsOnPage(offset int) (int, error) 
+	CountProductsOnPage(offset int) (int, error)
 }
 
 type ShopingCartRepo interface {
@@ -28,14 +44,18 @@ type ShopingCartRepo interface {
 	DeleteProductFromCart(orderId int, productId int) error
 }
 
-type OrderRepo interface{
+type OrderRepo interface {
 	Create(telegramId int64, date string) (models.Order, error)
-	GetOrder(telegramId int64) (models.Order, error)
+	GetOrderById(orderId int) (models.Order, error)
+	GetOrderByUser(telegramId int64) (models.Order, error)
+	GetOrderUser(orderId int) (models.User, error)
 	UpdateOrder(telegramId int64, field string, value string) error
 }
 
 type Repository struct {
 	UsersRepo
+	CouriersRepo
+	CouriersOrdersRepo
 	ProductsRepo
 	ShopingCartRepo
 	OrderRepo
@@ -43,9 +63,11 @@ type Repository struct {
 
 func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
-		UsersRepo: NewUsersSQLite3(db),
-		ProductsRepo: NewProductsSQLite3(db),
+		UsersRepo:       NewUsersSQLite3(db),
+		CouriersRepo:    NewCourierSQLite3(db),
+		CouriersOrdersRepo: NewCouriersOrdersSQLite3(db),
+		ProductsRepo:    NewProductsSQLite3(db),
 		ShopingCartRepo: NewShopingCartSQLite3(db),
-		OrderRepo: NewOrderSQLite3(db),
+		OrderRepo:       NewOrderSQLite3(db),
 	}
 }

@@ -41,3 +41,10 @@ func (r *UsersSQLite3) UpdateUser(telegramId int64, field string, value string) 
 
 	return err
 }
+
+func (r *UsersSQLite3) DeleteUser(telegramId int64) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE telegram_id=$1", usersTable)
+	_, err := r.db.Exec(query, telegramId)
+
+	return err
+}

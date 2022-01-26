@@ -3,13 +3,21 @@ CREATE TABLE users (
     telegram_id INTEGER NOT NULL UNIQUE, name VARCHAR(255) DEFAULT "", 
     number VARCHAR(255) DEFAULT "", 
     dialogue_status VARCHAR(255) DEFAULT "pre_registration" 
-);    
-      
+);
+
+CREATE TABLE couriers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+    telegram_id INTEGER NOT NULL UNIQUE, name VARCHAR(255) DEFAULT "", 
+    number VARCHAR(255) DEFAULT "", 
+    dialogue_status VARCHAR(255) DEFAULT "pre_registration" 
+);
+
 CREATE TABLE products ( 
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
     title VARCHAR(255) DEFAULT "", 
     price INTEGER DEFAULT 0, 
-    description TEXT DEFAULT "" 
+    description TEXT DEFAULT "",
+    image_name TEXT DEFAULT ""
 );    
       
 CREATE TABLE shoping_cart ( 
@@ -27,4 +35,10 @@ CREATE TABLE orders (
  	delivery_adress VARCHAR(255) DEFAULT "",
  	order_date datetime DEFAULT '',
     order_status VARCHAR(255) DEFAULT "in_progress"
-);    
+);
+
+CREATE TABLE couriers_orders (
+    courier_id INTEGER REFERENCES couriers (id) NOT NULL,
+    order_id INTEGER REFERENCES orders (id) NOT NULL,  
+    status VARCHAR(255) DEFAULT "active"
+);

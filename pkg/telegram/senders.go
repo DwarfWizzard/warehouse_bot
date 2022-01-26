@@ -2,7 +2,8 @@ package telegram
 
 import (
 	"fmt"
-	"log"
+	"os"
+	"strconv"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -13,11 +14,11 @@ func (b *Bot) sendMessage(chatId int64, text string) error {
 	return err
 }
 
-func (b *Bot) sendMessages(args ...tgbotapi.MessageConfig) {
+func (b *Bot) sendMessages(args ...tgbotapi.Chattable) {
 	for _, arg := range args {
 		_, err := b.bot.Send(arg)
 		if err != nil {
-			log.Println(err)
+			b.services.PrintLog(err.Error(), 1)
 			continue
 		}
 	}
@@ -25,7 +26,7 @@ func (b *Bot) sendMessages(args ...tgbotapi.MessageConfig) {
 
 func (b *Bot) openKeyboard(chatId int64) error {
 	msg := tgbotapi.NewMessage(chatId, "Клавиатура открыта")
-	msg.ReplyMarkup = menuKeyboard
+	msg.ReplyMarkup = userMenuKeyboard
 
 	_, err := b.bot.Send(msg)
 	return err
@@ -65,25 +66,26 @@ func (b *Bot) messageRegistrationLast(chatId int64) error {
 	return err
 }
 
+func (b *Bot)  messageCourierRegistrationLast(chatId int64) error {
+	courier, err := b.services.GetCourier(chatId)
+	if err != nil {
+		return err
+	}
+
+	err = b.sendMessageWithKeyboard(chatId, fmt.Sprintf("Проверьте верность указанных данных. \nИмя: %s\nНомер: %s", courier.Name, courier.Number), courierLastBoard)
+	return err
+}
+
 func (b *Bot) messageOrderLast(chatId int64) error {
-	order, err := b.services.GetOrder(chatId)
+	order, err := b.services.GetOrderByUser(chatId)
 	if err != nil {
 		return err
 	}
 
-	products, err := b.services.GetProductsFromCart(order.Id)
+	productListText, err := b.generateOrderText(order)
 	if err != nil {
 		return err
 	}
-
-	var productListText string = "Список продуктов:\n"
-	var totalPrice int
-	for i, product := range products {
-		productListText += fmt.Sprintf("\t%d. %s x%d %d.%d₽\n\n", i+1, product.Title, product.Quantity, (product.Price*product.Quantity)/100, (product.Price*product.Quantity)%100)
-		totalPrice += product.Price * product.Quantity
-	}
-
-	productListText += fmt.Sprintf("Общая сумма заказа: %d.%d₽\n\nДанные о заказчике:\n\tИмя заказчика: %s\n\tНомер заказчика: %s\n\tАдрес доставки: %s", totalPrice/100, totalPrice%100, order.UserName, order.UserNumber, order.DeliveryAdress)
 
 	msg := tgbotapi.NewMessage(chatId, productListText)
 	_, err = b.bot.Send(msg)
@@ -93,6 +95,36 @@ func (b *Bot) messageOrderLast(chatId int64) error {
 
 	msg = tgbotapi.NewMessage(chatId, "Изменить личные данные для заказа?")
 	msg.ReplyMarkup = editOrderUserInfoBoard
+	_, err = b.bot.Send(msg)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (b *Bot) sendMessageToDeliveryService(chatId int64) error {
+	order, err := b.services.GetOrderByUser(chatId)
+	if err != nil {
+		return err
+	}
+
+	productListText, err := b.generateOrderText(order)
+	if err != nil {
+		return err
+	}
+	
+	expressChatId, err := strconv.ParseInt(os.Getenv("EXPRESS_CHAT_ID"), 0, 64)
+	if err != nil {
+		return err
+	}
+
+	msg := tgbotapi.NewMessage(expressChatId, productListText)
+	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Принять заказ", fmt.Sprintf("accept_order %d", order.Id)),
+		),
+	)
 	_, err = b.bot.Send(msg)
 	if err != nil {
 		return err

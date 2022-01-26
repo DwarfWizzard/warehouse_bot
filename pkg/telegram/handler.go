@@ -1,31 +1,36 @@
 package telegram
 
 import (
+	"os"
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 const (
-	commandStart    = "start"
-	commandMenu = "menu"
+	commandStart = "start"
+	commandMenu  = "menu"
 )
 
 const (
-	callbackPreRegYes        = "pre_reg_yes"
-	callbackPreRegNo         = "pre_reg_no"
-	callbackRegLastYes       = "reg_last_yes"
-	callbackRegLastNo        = "reg_last_no"
-	callbackChangePage       = "ch_page"
-	callbackAddCart          = "add_cart"
-	callbackReduceQuantity   = "reduce_quantity"
-	callbackIncreaseQuantity = "increase_quantity"
-	callbackEditProfileYes   = "edit_profile_yes"
-	callbackDeleteFromCart   = "delete_from_cart"
-	callbackPlaceAnOrderYes  = "place_an_order_yes"
-	callbackPlaceAnOrderNo   = "place_an_order_no"
-	callbackEditOrderYes     = "edit_order_yes"
-	callbackEditOrderNo     = "edit_order_no"
+	callbackPreRegYes             = "pre_reg_yes"
+	callbackRegLastYes            = "reg_last_yes"
+	callbackRegLastNo             = "reg_last_no"
+	callbackChangePage            = "ch_page"
+	callbackAddCart               = "add_cart"
+	callbackReduceQuantity        = "reduce_quantity"
+	callbackIncreaseQuantity      = "increase_quantity"
+	callbackEditProfileYes        = "edit_profile_yes"
+	callbackDeleteFromCart        = "delete_from_cart"
+	callbackPlaceAnOrderYes       = "place_an_order_yes"
+	callbackPlaceAnOrderNo        = "place_an_order_no"
+	callbackEditOrderYes          = "edit_order_yes"
+	callbackEditOrderNo           = "edit_order_no"
+	callbackAcceptOrder           = "accept_order"
+	callbackCourierRegLastYes     = "courier_reg_last_yes"
+	callbackCourierRegLastNo      = "courier_reg_last_no"
+	callbackEditCourierProfileYes = "edit_courier_profile_yes"
+	callbackFinishOrder           = "finish_order"
 )
 
 func (b *Bot) handleCommands(message *tgbotapi.Message) error {
@@ -78,8 +83,22 @@ func (b *Bot) handleCallbacks(callbackQuery *tgbotapi.CallbackQuery) error {
 		}
 	}
 
+	if strings.Contains(callbackQuery.Data, callbackAcceptOrder) {
+		err := b.callbackAcceptOrder(callbackQuery)
+		if err != nil {
+			return err
+		}
+	}
+
+	if strings.Contains(callbackQuery.Data, callbackFinishOrder) {
+		err := b.callbackFinishOrder(callbackQuery)
+		if err != nil {
+			return err
+		}
+	}
+
 	switch callbackQuery.Data {
-	case callbackPreRegYes, callbackPreRegNo:
+	case callbackPreRegYes:
 		err := b.callbackPreReg(callbackQuery)
 		if err != nil {
 			return err
@@ -114,37 +133,93 @@ func (b *Bot) handleCallbacks(callbackQuery *tgbotapi.CallbackQuery) error {
 		if err != nil {
 			return err
 		}
+	case callbackCourierRegLastYes, callbackCourierRegLastNo:
+		err := b.callbackCourierRegLast(callbackQuery)
+		if err != nil {
+			return err
+		}
+	case callbackEditCourierProfileYes:
+		err := b.callbackEditCourierProfile(callbackQuery)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 func (b *Bot) handleStandartMessages(message *tgbotapi.Message) error {
-	err := b.registration(message)
-	if err != nil {
+	if message.Text == os.Getenv("COURIER_KEYWORD") {
+		err := b.standartMessageCourierPreReg(message.Chat.ID)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	user, err := b.services.GetUser(message.Chat.ID)
+	if err != nil && !strings.Contains(err.Error(), "sql: no rows in result set") {
 		return err
 	}
 
-	err = b.placeAnOrder(message)
-	if err != nil {
-		return err
+	if user.Id != 0 {
+		err := b.registration(message)
+		if err != nil {
+			return err
+		}
+
+		err = b.placeAnOrder(message)
+		if err != nil {
+			return err
+		}
+		switch message.Text {
+		case "Каталог":
+			err := b.standartMessageCatalog(message.Chat.ID)
+			if err != nil {
+				return err
+			}
+		case "Корзина":
+			err := b.standartMessageShopingCart(message.Chat.ID)
+			if err != nil {
+				return err
+			}
+		case "Профиль":
+			err := b.standartMessageProfile(message.Chat.ID)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
 	}
 
-	switch message.Text {
-	case "Каталог":
-		err := b.standartMessageCatalog(message.Chat.ID)
+	courier, err := b.services.GetCourier(message.Chat.ID)
+	if err != nil && err.Error() != "repository/GetCourier: select from couriers : sql: no rows in result set" {
+		return err
+	}
+	if courier.Id != 0 {
+		err := b.courierRegistration(message)
 		if err != nil {
 			return err
 		}
-	case "Корзина":
-		err := b.standartMessageShopingCart(message.Chat.ID)
-		if err != nil {
-			return err
-		}
-	case "Профиль":
-		err := b.standartMessageProfile(message.Chat.ID)
-		if err != nil {
-			return err
+
+		switch message.Text {
+		case "Активные заказы":
+			err := b.standartMessageCourierActiveOrders(message.Chat.ID)
+			if err != nil {
+				return err
+			}
+		case "История заказов":
+			err := b.standartMessageCourierAllOrders(message.Chat.ID)
+			if err != nil {
+				return err
+			}
+		case "Профиль":
+			err := b.standartMessageCourierProfile(message.Chat.ID)
+			if err != nil {
+				return err
+			}
 		}
 	}
+
 	return nil
 }

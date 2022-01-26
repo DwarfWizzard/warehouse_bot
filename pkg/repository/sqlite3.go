@@ -1,15 +1,16 @@
 package repository
 
 import (
-
 	"github.com/jmoiron/sqlx"
 )
 
 const (
-	usersTable = "users"
-	productsTable = "products"
-	shopingCartTable = "shoping_cart"
-	ordersTable = "orders"
+	usersTable          = "users"
+	couriersTable       = "couriers"
+	productsTable       = "products"
+	shopingCartTable    = "shoping_cart"
+	ordersTable         = "orders"
+	couriersOrdersTable = "couriers_orders"
 )
 
 func NewSQLite3DB(path string) (*sqlx.DB, error) {

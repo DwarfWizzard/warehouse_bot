@@ -42,7 +42,7 @@ func (r *ShopingCartSQLite3) GetCart(orderId int, productId int) (models.Shoping
 func (r *ShopingCartSQLite3) GetProductsFromCart(orderId int) ([]models.Product, error) {
 	var products []models.Product
 	
-	query := fmt.Sprintf("SELECT tl.id, tl.title, ul.price, tl.description FROM %s tl INNER JOIN %s ul WHERE ul.order_id=$1 AND ul.product_id=tl.id;", productsTable, shopingCartTable)
+	query := fmt.Sprintf("SELECT tl.id, tl.title, ul.price, tl.description, tl.image_name FROM %s tl INNER JOIN %s ul WHERE ul.order_id=$1 AND ul.product_id=tl.id;", productsTable, shopingCartTable)
 	err := r.db.Select(&products, query, orderId)
 	if err != nil {
 		return products, err

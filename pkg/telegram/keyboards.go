@@ -5,7 +5,6 @@ import tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 var preRegistrationBoard = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData("🟢", "pre_reg_yes"),
-		tgbotapi.NewInlineKeyboardButtonData("🔴", "pre_reg_no"),
 	),
 )
 
@@ -13,6 +12,13 @@ var registrationLastBoard = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData("🟢", "reg_last_yes"),
 		tgbotapi.NewInlineKeyboardButtonData("🔴", "reg_last_no"),
+	),
+)
+
+var courierLastBoard = tgbotapi.NewInlineKeyboardMarkup(
+	tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData("🟢", "courier_reg_last_yes"),
+		tgbotapi.NewInlineKeyboardButtonData("🔴", "courier_reg_last_no"),
 	),
 )
 
@@ -29,6 +35,11 @@ var editOrderUserInfoBoard = tgbotapi.NewInlineKeyboardMarkup(
 	),
 )
 
+var editCourierProfileBoard = tgbotapi.NewInlineKeyboardMarkup(
+	tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData("🟢", "edit_courier_profile_yes"),
+	),
+)
 
 var placeAnOrderBoard = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
@@ -37,10 +48,18 @@ var placeAnOrderBoard = tgbotapi.NewInlineKeyboardMarkup(
 	),
 )
 
-var menuKeyboard = tgbotapi.NewReplyKeyboard(
+var userMenuKeyboard = tgbotapi.NewReplyKeyboard(
 	tgbotapi.NewKeyboardButtonRow(
 		tgbotapi.NewKeyboardButton("Каталог"),
 		tgbotapi.NewKeyboardButton("Корзина"),
+		tgbotapi.NewKeyboardButton("Профиль"),
+	),
+)
+
+var courierMenuKeyboard = tgbotapi.NewReplyKeyboard(
+	tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton("Активные заказы"),
+		tgbotapi.NewKeyboardButton("История заказов"),
 		tgbotapi.NewKeyboardButton("Профиль"),
 	),
 )

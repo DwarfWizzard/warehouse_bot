@@ -27,3 +27,7 @@ func (s *UserService) GetUser(telegramId int64) (models.User, error) {
 func (s *UserService) UpdateUser(telegramId int64, field string, value string) error {
 	return s.repo.UpdateUser(telegramId, field, value)
 }
+
+func (s *UserService) DeleteUser(telegramId int64) error {
+	return s.repo.DeleteUser(telegramId)
+}

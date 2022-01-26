@@ -16,7 +16,28 @@ func (b *Bot) callbackPreReg(callbackQuery *tgbotapi.CallbackQuery) error {
 		return err
 	}
 
-	if callbackQuery.Data == callbackPreRegYes {
+	err = b.services.UpdateUser(chatId, "dialogue_status", "registration_add-name")
+	if err != nil {
+		return err
+	}
+	err = b.sendMessage(chatId, "Хорошо, укажите ваше имя")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (b *Bot) callbackRegLast(callbackQuery *tgbotapi.CallbackQuery) error {
+	chatId := callbackQuery.From.ID
+
+	if callbackQuery.Data == callbackRegLastYes {
+		err := b.sendMessageWithKeyboard(chatId, "Замечательно! Приятно с вами познакомиться :)", userMenuKeyboard)
+		if err != nil {
+			return err
+		}
+	}
+	if callbackQuery.Data == callbackRegLastNo {
 		err := b.services.UpdateUser(chatId, "dialogue_status", "registration_add-name")
 		if err != nil {
 			return err
@@ -27,32 +48,25 @@ func (b *Bot) callbackPreReg(callbackQuery *tgbotapi.CallbackQuery) error {
 			return err
 		}
 	}
-	if callbackQuery.Data == callbackPreRegNo {
-		err := b.services.UpdateUser(chatId, "dialogue_status", "normal")
-		if err != nil {
-			return err
-		}
 
-		err = b.sendMessage(chatId, "Хорошо. При оформлении заказов, вам необходимо будет указывать эти данные.")
-		if err != nil {
-			return err
-		}
+	err := b.deleteReplyMarkup(callbackQuery.Message)
+	if err != nil {
+		return err
 	}
-
 	return nil
 }
 
-func (b *Bot) callbackRegLast(callbackQuery *tgbotapi.CallbackQuery) error {
+func (b *Bot) callbackCourierRegLast(callbackQuery *tgbotapi.CallbackQuery) error {
 	chatId := callbackQuery.From.ID
 
-	if callbackQuery.Data == callbackRegLastYes {
-		err := b.sendMessageWithKeyboard(chatId, "Замечательно! Приятно с вами познакомиться :)", menuKeyboard)
+	if callbackQuery.Data == callbackCourierRegLastYes {
+		err := b.sendMessageWithKeyboard(chatId, "Замечательно! Приятно с вами познакомиться :)", courierMenuKeyboard)
 		if err != nil {
 			return err
 		}
 	}
-	if callbackQuery.Data == callbackRegLastNo {
-		err := b.services.UpdateUser(chatId, "dialogue_status", "registration_add-name")
+	if callbackQuery.Data == callbackCourierRegLastNo {
+		err := b.services.UpdateCourier(chatId, "dialogue_status", "registration_add-name")
 		if err != nil {
 			return err
 		}
@@ -105,14 +119,14 @@ func (b *Bot) callbackChangePage(callbackQuery *tgbotapi.CallbackQuery) error {
 		return err
 	}
 
-	offset := (page-1) * 5
+	offset := (page - 1) * 5
 
 	products, err := b.services.GetProducts(offset)
 	if err != nil {
 		return err
 	}
 
-	prodOnPage, err := b.services.CountProductsOnPage((page-2)*5)
+	prodOnPage, err := b.services.CountProductsOnPage((page - 2) * 5)
 
 	if err != nil {
 		return err
@@ -121,7 +135,6 @@ func (b *Bot) callbackChangePage(callbackQuery *tgbotapi.CallbackQuery) error {
 	for i := 0; i <= prodOnPage; i++ {
 		b.deleteMessage(chatId, callbackQuery.Message.MessageID-i)
 	}
-
 
 	productsList := b.generateProductListCardsMessages(products, chatId)
 
@@ -146,7 +159,7 @@ func (b *Bot) callbackAddToCart(callbackQuery *tgbotapi.CallbackQuery) error {
 		return err
 	}
 
-	order, err := b.services.GetOrder(chatId)
+	order, err := b.services.GetOrderByUser(chatId)
 	if err != nil {
 		return err
 	}
@@ -163,7 +176,7 @@ func (b *Bot) callbackReduceQuantity(callbackQuery *tgbotapi.CallbackQuery) erro
 		return err
 	}
 
-	order, err := b.services.GetOrder(callbackQuery.From.ID)
+	order, err := b.services.GetOrderByUser(callbackQuery.From.ID)
 	if err != nil {
 		return err
 	}
@@ -219,7 +232,7 @@ func (b *Bot) callbackIncreaseQuantity(callbackQuery *tgbotapi.CallbackQuery) er
 		return err
 	}
 
-	order, err := b.services.GetOrder(callbackQuery.From.ID)
+	order, err := b.services.GetOrderByUser(callbackQuery.From.ID)
 	if err != nil {
 		return err
 	}
@@ -229,14 +242,14 @@ func (b *Bot) callbackIncreaseQuantity(callbackQuery *tgbotapi.CallbackQuery) er
 		return err
 	}
 
-	if cbSplit[0] == "increase_quantity_10"{
+	if cbSplit[0] == "increase_quantity_10" {
 		quantity += 10
 		err = b.services.UpdateQuantity(order.Id, productId, quantity)
 		if err != nil {
 			return err
 		}
 	}
-	if cbSplit[0] == "increase_quantity_1"{
+	if cbSplit[0] == "increase_quantity_1" {
 		quantity += 1
 		err = b.services.UpdateQuantity(order.Id, productId, quantity)
 		if err != nil {
@@ -256,14 +269,14 @@ func (b *Bot) callbackIncreaseQuantity(callbackQuery *tgbotapi.CallbackQuery) er
 	return nil
 }
 
-func (b *Bot) callbackDeleteFromCart(callbackQuery *tgbotapi.CallbackQuery) error{
+func (b *Bot) callbackDeleteFromCart(callbackQuery *tgbotapi.CallbackQuery) error {
 	cbSplit := strings.Split(callbackQuery.Data, " ")
 	productId, err := strconv.Atoi(cbSplit[1])
 	if err != nil {
 		return err
 	}
 
-	order, err := b.services.GetOrder(callbackQuery.From.ID)
+	order, err := b.services.GetOrderByUser(callbackQuery.From.ID)
 	if err != nil {
 		return err
 	}
@@ -289,7 +302,7 @@ func (b *Bot) callbackPlaceAnOrderYes(callbackQuery *tgbotapi.CallbackQuery) err
 		return err
 	}
 
-	order, err := b.services.GetOrder(chatId)
+	order, err := b.services.GetOrderByUser(chatId)
 	if err != nil {
 		return err
 	}
@@ -326,7 +339,7 @@ func (b *Bot) callbackPlaceAnOrderNo(callbackQuery *tgbotapi.CallbackQuery) erro
 		return err
 	}
 
-	order, err := b.services.GetOrder(chatId)
+	order, err := b.services.GetOrderByUser(chatId)
 	if err != nil {
 		return err
 	}
@@ -379,7 +392,7 @@ func (b *Bot) callbackEditOrderNo(callbackQuery *tgbotapi.CallbackQuery) error {
 
 	chatId := callbackQuery.From.ID
 
-	order, err := b.services.GetOrder(chatId)
+	order, err := b.services.GetOrderByUser(chatId)
 	if err != nil {
 		return err
 	}
@@ -389,12 +402,17 @@ func (b *Bot) callbackEditOrderNo(callbackQuery *tgbotapi.CallbackQuery) error {
 		return err
 	}
 
-	err = b.services.UpdateOrder(chatId, "order_status", "finished")
+	err = b.sendMessageWithKeyboard(chatId, fmt.Sprintf("Отлично! Ваш заказ №%d отправлен в службу доставки. Когда ваш заказ примут, вам придет сообщение с данными о курьере.", order.Id), userMenuKeyboard)
 	if err != nil {
 		return err
 	}
 
-	err = b.sendMessageWithKeyboard(chatId, fmt.Sprintf("Отлично! Ваш заказ №%d отправлен в службу доставки. Когда вам заказ примут, вам придет сообщение с данными о курьере.", order.Id), menuKeyboard)
+	err = b.sendMessageToDeliveryService(chatId)
+	if err != nil {
+		return err
+	}
+
+	err = b.services.UpdateOrder(chatId, "order_status", "finished")
 	if err != nil {
 		return err
 	}
@@ -415,4 +433,100 @@ func (b *Bot) updatedCartProductCardText(orderId int, productId int) (string, er
 
 	newText := fmt.Sprintf("%s x%d\n\nЦена: %d.%d₽\n\nОписание: %s", product.Title, cart.Quantity, cart.Price/100, cart.Price%100, product.Description)
 	return newText, nil
+}
+
+func (b *Bot) callbackAcceptOrder(callbackQuery *tgbotapi.CallbackQuery) error {
+	courier, err := b.services.GetCourier(callbackQuery.From.ID)
+	if err != nil {
+		return err
+	}
+
+	cbSplit := strings.Split(callbackQuery.Data, " ")
+	orderId, err := strconv.Atoi(cbSplit[1])
+	if err != nil {
+		return err
+	}
+
+	user, err := b.services.GetOrderUser(orderId)
+	if err != nil {
+		return err
+	}
+
+	order, err := b.services.GetOrderById(orderId)
+	if err != nil {
+		return err
+	}
+
+	orderText, err := b.generateOrderText(order)
+	if err != nil {
+		return err
+	}
+
+	courierText := fmt.Sprintf("Ваш заказ №%d доставит:\n\t%s.\n\t%s.\n", orderId, courier.Name, courier.Number)
+
+	err = b.services.CreateCourierOrder(orderId, courier.Id)
+	if err != nil {
+		return err
+	}
+
+	err = b.sendMessage(user.TelegramId, courierText)
+	if err != nil {
+		return err
+	}
+
+	err = b.sendMessageWithKeyboard(courier.TelegramId, orderText, tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Завершить заказ", fmt.Sprintf("finish_order %d", orderId)),
+		),
+	))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (b *Bot) callbackEditCourierProfile(callbackQuery *tgbotapi.CallbackQuery) error {
+	chatId := callbackQuery.From.ID
+	err := b.deleteReplyMarkup(callbackQuery.Message)
+	if err != nil {
+		return err
+	}
+
+	err = b.closeKeyboard(chatId, "В процессе редактирования профиля функционал бота не доступен")
+	if err != nil {
+		return err
+	}
+
+	err = b.services.UpdateCourier(chatId, "dialogue_status", "registration_add-name")
+	if err != nil {
+		return err
+	}
+
+	err = b.sendMessage(chatId, "Хорошо. Пожалуйста, напишите ваше имя.")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (b *Bot) callbackFinishOrder(callbackQuery *tgbotapi.CallbackQuery) error {
+	cbSplit := strings.Split(callbackQuery.Data, " ")
+	orderId, err := strconv.Atoi(cbSplit[1])
+	if err != nil {
+		return err
+	}
+
+	err = b.services.UpdateCourierOrder(orderId, "status", "delivered")
+	if err != nil {
+		return err
+	}
+
+	err = b.deleteReplyMarkup(callbackQuery.Message)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

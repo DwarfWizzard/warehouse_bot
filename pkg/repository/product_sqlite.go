@@ -3,7 +3,6 @@ package repository
 import (
 	"github.com/jmoiron/sqlx"
 	"fmt"
-	"log"
 
 	"github.com/DwarfWizzard/warehouse_bot/pkg/models"
 )
@@ -30,21 +29,9 @@ func (r *ProductsSQLite3) GetProducts(offset int) ([]models.Product, error) {
 	var products []models.Product
 
 	query := fmt.Sprintf("SELECT * FROM %s LIMIT 5 OFFSET $2", productsTable)
-	rows, err := r.db.Query(query, offset)
+	err := r.db.Select(&products, query, offset)
 	if err != nil {
 		return nil, err
-	}
-
-	defer rows.Close()
-
-	for rows.Next() {
-		product := models.Product{}
-		err := rows.Scan(&product.Id, &product.Title, &product.Price, &product.Description)
-		if err != nil {
-			log.Println(err.Error())
-			continue
-		}
-		products = append(products, product)
 	}
 
 	return products, nil
