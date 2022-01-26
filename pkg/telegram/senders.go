@@ -11,6 +11,11 @@ import (
 func (b *Bot) sendMessage(chatId int64, text string) error {
 	msg := tgbotapi.NewMessage(chatId, text)
 	_, err := b.bot.Send(msg)
+
+	if err != nil {
+		return fmt.Errorf("telegram/sendMessage: error %s", err.Error())
+	}
+
 	return err
 }
 
@@ -18,7 +23,7 @@ func (b *Bot) sendMessages(args ...tgbotapi.Chattable) {
 	for _, arg := range args {
 		_, err := b.bot.Send(arg)
 		if err != nil {
-			b.services.PrintLog(err.Error(), 1)
+			b.services.PrintLog(fmt.Sprintf("telegram/sendMessages: %s", err.Error()), 1)
 			continue
 		}
 	}
@@ -29,6 +34,9 @@ func (b *Bot) openKeyboard(chatId int64) error {
 	msg.ReplyMarkup = userMenuKeyboard
 
 	_, err := b.bot.Send(msg)
+	if err != nil {
+		return fmt.Errorf("telegram/openKeyboard: error %s", err.Error())
+	}
 	return err
 }
 
@@ -37,7 +45,10 @@ func (b *Bot) closeKeyboard(chatId int64, text string) error {
 	msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 
 	_, err := b.bot.Send(msg)
-	return err
+	if err != nil {
+		return fmt.Errorf("telegram/closeKeyboard: error %s", err.Error())
+	}
+	return nil
 }
 
 func (b *Bot) sendMessageWithKeyboard(chatId int64, text string, Keyboard interface{}) error {
@@ -45,7 +56,10 @@ func (b *Bot) sendMessageWithKeyboard(chatId int64, text string, Keyboard interf
 	msg.ReplyMarkup = Keyboard
 
 	_, err := b.bot.Send(msg)
-	return err
+	if err != nil {
+		return fmt.Errorf("telegram/sendMessageWithKeyboard: error %s", err.Error())
+	}
+	return nil
 }
 
 func (b *Bot) updateMessage(chatId int64, messageId int, keyboard *tgbotapi.InlineKeyboardMarkup, newText string) error {
@@ -53,7 +67,11 @@ func (b *Bot) updateMessage(chatId int64, messageId int, keyboard *tgbotapi.Inli
 	editMsg.ReplyMarkup = keyboard
 	_, err := b.bot.Send(editMsg)
 
-	return err
+	if err != nil {
+		return fmt.Errorf("telegram/updateMessage: error %s", err.Error())
+	}
+
+	return nil
 }
 
 func (b *Bot) messageRegistrationLast(chatId int64) error {
@@ -90,14 +108,14 @@ func (b *Bot) messageOrderLast(chatId int64) error {
 	msg := tgbotapi.NewMessage(chatId, productListText)
 	_, err = b.bot.Send(msg)
 	if err != nil {
-		return err
+		return fmt.Errorf("telegram/messageOrderLast: error %s", err.Error())
 	}
 
 	msg = tgbotapi.NewMessage(chatId, "Изменить личные данные для заказа?")
 	msg.ReplyMarkup = editOrderUserInfoBoard
 	_, err = b.bot.Send(msg)
 	if err != nil {
-		return err
+		return fmt.Errorf("telegram/messageOrderLast: error %s", err.Error())
 	}
 
 	return nil
@@ -116,7 +134,7 @@ func (b *Bot) sendMessageToDeliveryService(chatId int64) error {
 	
 	expressChatId, err := strconv.ParseInt(os.Getenv("EXPRESS_CHAT_ID"), 0, 64)
 	if err != nil {
-		return err
+		return fmt.Errorf("telegram/sendMessageToDeliveryService/parseInt: error %s", err.Error())
 	}
 
 	msg := tgbotapi.NewMessage(expressChatId, productListText)
@@ -127,7 +145,7 @@ func (b *Bot) sendMessageToDeliveryService(chatId int64) error {
 	)
 	_, err = b.bot.Send(msg)
 	if err != nil {
-		return err
+		return fmt.Errorf("telegram/sendMessageToDeliveryService: error %s", err.Error())
 	}
 
 	return nil

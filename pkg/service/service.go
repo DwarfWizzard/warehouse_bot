@@ -26,7 +26,6 @@ type CouriersOrders interface {
 	GetActiveOrders(courierId int) ([]models.Order, error)
 	GetCourierOrders(courierId int) ([]models.Order, error)
 	UpdateCourierOrder(orderId int, field string, value string) error
-	GetOrderStatus(orderId int) (string, error)
 }
 
 type Products interface {

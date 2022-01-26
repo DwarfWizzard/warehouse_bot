@@ -462,6 +462,11 @@ func (b *Bot) callbackAcceptOrder(callbackQuery *tgbotapi.CallbackQuery) error {
 		return err
 	}
 
+	err = b.deleteReplyMarkup(callbackQuery.Message)
+	if err != nil {
+		return err
+	}
+
 	courierText := fmt.Sprintf("Ваш заказ №%d доставит:\n\t%s.\n\t%s.\n", orderId, courier.Name, courier.Number)
 
 	err = b.services.CreateCourierOrder(orderId, courier.Id)

@@ -29,7 +29,7 @@ func (r *CouriersOrdersSQLite3) Create(orderId int, courierId int) error {
 
 func (r *CouriersOrdersSQLite3) GetCourier(orderId int) (models.Courier, error) {
 	var courier models.Courier
-	query := fmt.Sprintf("SELECT * FROM %s WHERE order_id=$1", couriersOrdersTable)
+	query := fmt.Sprintf("SELECT tl.id, tl.telegram_id, tl.name, tl.number, tl.dialogue_status FROM %s tl INNER JOIN %s ul ON ul.courier_id=tl.id WHERE ul.order_id=$1", couriersTable,couriersOrdersTable)
 	err := r.db.Get(&courier, query, orderId)
 	if err != nil {
 		return courier, fmt.Errorf("repository/GetCourierByOrder: [orderId %d] : error %s", orderId, err.Error())
@@ -58,17 +58,6 @@ func (r *CouriersOrdersSQLite3) GetCourierOrders(courierId int) ([]models.Order,
 	}
 
 	return orders, nil
-}
-
-func (r *CouriersOrdersSQLite3) GetOrderStatus(orderId int) (string, error) {
-	var status string
-	query := fmt.Sprintf("SELECT status FROM %s WHERE order_id=$1", couriersOrdersTable)
-	err := r.db.Get(&status, query, orderId)
-	if err != nil {
-		return status, fmt.Errorf("repository/GetOrdersStatus: [orderId %d] : error %s", orderId, err.Error())
-	}
-
-	return status, nil
 }
 
 func (r *CouriersOrdersSQLite3) Update(orderId int, field string, value string) error {

@@ -1,6 +1,8 @@
 package service
 
 import (
+	"strings"
+
 	"github.com/DwarfWizzard/warehouse_bot/pkg/models"
 	"github.com/DwarfWizzard/warehouse_bot/pkg/repository"
 )
@@ -16,7 +18,16 @@ func NewCouriersOrdersService(repo repository.CouriersOrdersRepo) *CourierOrderS
 }
 
 func (s *CourierOrderService) CreateCourierOrder(orderId int, courierId int) error {
-	return s.repo.Create(orderId, courierId)
+	_, err := s.repo.GetCourier(orderId)
+	if err != nil && !strings.Contains(err.Error(), "sql: no rows in result set") {
+		return err
+	} else {
+		err := s.repo.Create(orderId, courierId)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s *CourierOrderService) GetOrderCourier(orderId int) (models.Courier, error) {
@@ -33,8 +44,4 @@ func (s *CourierOrderService) GetCourierOrders(courierId int) ([]models.Order, e
 
 func (s *CourierOrderService) UpdateCourierOrder(orderId int, field string, value string) error {
 	return s.repo.Update(orderId, field, value)
-}
-
-func (s *CourierOrderService) GetOrderStatus(orderId int) (string, error) {
-	return s.repo.GetOrderStatus(orderId)
 }

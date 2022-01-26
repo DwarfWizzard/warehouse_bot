@@ -38,8 +38,8 @@ func main() {
 	repos := repository.NewRepository(db)
 	services := service.NewService(repos, infoLogFile, errLogFile)
 
-	key := os.Getenv("KEY")
-	botApi, err := tgbotapi.NewBotAPI(key)
+	token := os.Getenv("TELEGRAM_BOT_TOKEN")
+	botApi, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
 		log.Fatalf("failied to init telegram bot: %s", err.Error())
 	}

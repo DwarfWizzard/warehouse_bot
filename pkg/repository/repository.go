@@ -24,7 +24,6 @@ type CouriersOrdersRepo interface {
 	GetActiveOrders(courierId int) ([]models.Order, error)
 	GetCourierOrders(courierId int) ([]models.Order, error)
 	Update(orderId int, field string, value string) error
-	GetOrderStatus(orderId int) (string, error)
 }
 
 type ProductsRepo interface {

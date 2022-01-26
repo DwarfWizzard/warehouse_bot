@@ -22,7 +22,11 @@ func (r *ProductsSQLite3) GetProduct(productId int) (models.Product, error) {
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1", productsTable)
 	err := r.db.Get(&product, query, productId)
 
-	return product, err
+	if err != nil {
+		return product, fmt.Errorf("repositoty/GetProduct: [productId %d] : error %s", productId, err.Error())
+	}
+
+	return product, nil
 }
 
 func (r *ProductsSQLite3) GetProducts(offset int) ([]models.Product, error) {
@@ -31,7 +35,7 @@ func (r *ProductsSQLite3) GetProducts(offset int) ([]models.Product, error) {
 	query := fmt.Sprintf("SELECT * FROM %s LIMIT 5 OFFSET $2", productsTable)
 	err := r.db.Select(&products, query, offset)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("repositoty/GetProducts: [offset%d] : error %s", offset, err.Error())
 	}
 
 	return products, nil
@@ -42,9 +46,13 @@ func (r *ProductsSQLite3) CountProducts() (int, error) {
 
 	query := fmt.Sprintf("SELECT COUNT(*) FROM %s", productsTable)
 	row := r.db.QueryRow(query)
-
 	err := row.Scan(&count)
-	return count, err
+
+	if err != nil {
+		return 0, fmt.Errorf("repositoty/CountProducts: error %s", err.Error())
+	}
+
+	return count, nil
 }
 
 func (r *ProductsSQLite3) CountProductsOnPage(offset int) (int, error) {
@@ -54,5 +62,9 @@ func (r *ProductsSQLite3) CountProductsOnPage(offset int) (int, error) {
 	row := r.db.QueryRow(query, offset)
 
 	err := row.Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("repositoty/CountProductsOnPage: [offset%d] : error %s", offset, err.Error())
+	}
+
 	return count, err
 }
