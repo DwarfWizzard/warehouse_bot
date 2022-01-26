@@ -49,7 +49,7 @@ func (r *CouriersOrdersSQLite3) GetActiveOrders(courierId int) ([]models.Order, 
 	return orders, nil
 }
 
-func (r *CouriersOrdersSQLite3) GetOrders(courierId int) ([]models.Order, error) {
+func (r *CouriersOrdersSQLite3) GetCourierOrders(courierId int) ([]models.Order, error) {
 	var orders []models.Order
 	query := fmt.Sprintf("SELECT tl.id, tl.user_id, tl.user_name, tl.user_number, tl.delivery_adress, tl.order_date, tl.order_status FROM %s tl INNER JOIN %s ul ON ul.order_id=tl.id WHERE ul.courier_id=$1", ordersTable,couriersOrdersTable)
 	err := r.db.Select(&orders, query, courierId)

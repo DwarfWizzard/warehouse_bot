@@ -40,6 +40,10 @@ func (s *OrderService) GetOrderByUser(telegramId int64) (models.Order, error) {
 	return order, nil
 }
 
+func (s *OrderService) GetAllOrdersUser(userId int) ([]models.Order, error) {
+	return s.repo.GetAllOrdersUser(userId)
+}
+
 func (s *OrderService) UpdateOrder(telegramId int64, field string, value string) error {
 	return s.repo.UpdateOrder(telegramId, field, value)
 }

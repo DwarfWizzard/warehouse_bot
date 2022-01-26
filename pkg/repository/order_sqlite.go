@@ -98,3 +98,15 @@ func (r *OrderSQLite3) UpdateOrder(telegramId int64, field string, value string)
 	return nil
 }
 
+func (r *OrderSQLite3) GetAllOrdersUser(userId int) ([]models.Order, error) {
+	var orders []models.Order
+
+	query := fmt.Sprintf("SELECT * FROM %s WHERE user_id=$1", ordersTable)
+	err := r.db.Select(&orders, query, userId)
+	if err != nil {
+		return orders, fmt.Errorf("repository/GetAllOrdersUser: [user_id %d] : error %s", userId, err.Error())
+	}
+
+	return orders, nil
+}
+

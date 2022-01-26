@@ -52,6 +52,7 @@ var userMenuKeyboard = tgbotapi.NewReplyKeyboard(
 	tgbotapi.NewKeyboardButtonRow(
 		tgbotapi.NewKeyboardButton("Каталог"),
 		tgbotapi.NewKeyboardButton("Корзина"),
+		tgbotapi.NewKeyboardButton("История заказов"),
 		tgbotapi.NewKeyboardButton("Профиль"),
 	),
 )

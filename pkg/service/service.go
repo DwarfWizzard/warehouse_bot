@@ -24,7 +24,7 @@ type CouriersOrders interface {
 	CreateCourierOrder(orderId int, courierId int) error
 	GetOrderCourier(orderId int) (models.Courier, error)
 	GetActiveOrders(courierId int) ([]models.Order, error)
-	GetOrders(courierId int) ([]models.Order, error)
+	GetCourierOrders(courierId int) ([]models.Order, error)
 	UpdateCourierOrder(orderId int, field string, value string) error
 	GetOrderStatus(orderId int) (string, error)
 }
@@ -51,6 +51,7 @@ type Order interface{
 	GetOrderByUser(telegramId int64) (models.Order, error)
 	UpdateOrder(telegramId int64, field string, value string) error
 	GetOrderUser(orderId int) (models.User, error)
+	GetAllOrdersUser(userId int) ([]models.Order, error)
 }
 
 type Logger interface{

@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/DwarfWizzard/warehouse_bot/pkg/models"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -150,11 +151,13 @@ func (b *Bot) generateAllOrderCards(orders []models.Order, chatId int64) []tgbot
 		}
 
 		status, err := b.services.GetOrderStatus(order.Id)
-		if err != nil {
+		if err == nil {
+			orderText += fmt.Sprintf("\n\nСтатус заказа: %s", status)	
+		} else if !strings.Contains(err.Error(), "sql: no rows in result set"){
 			b.services.PrintLog(err.Error(), 1)
 			continue
 		}
-		orderText += fmt.Sprintf("\n\nСтатус заказа: %s", status)
+		
 		orderCard := tgbotapi.NewMessage(chatId, orderText)
 
 		orderCards = append(orderCards, orderCard)

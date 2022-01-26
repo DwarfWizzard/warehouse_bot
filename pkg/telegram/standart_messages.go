@@ -301,6 +301,23 @@ func (b *Bot) standartMessageCourierPreReg(chatId int64) error{
 	return nil
 }
 
+func (b *Bot) standartMessageAllOrders(chatId int64) error {
+	user, err := b.services.GetUser(chatId)
+	if err != nil {
+		return err
+	}
+
+	orders, err := b.services.GetAllOrdersUser(user.Id)
+	if err != nil {
+		return err
+	}
+
+	orderCards := b.generateAllOrderCards(orders, chatId)
+	b.sendMessages(orderCards...)
+
+	return nil
+}
+
 func (b *Bot) standartMessageCourierActiveOrders(chatId int64) error {
 	courier, err := b.services.GetCourier(chatId)
 	if err != nil {
@@ -325,7 +342,7 @@ func (b *Bot) standartMessageCourierAllOrders(chatId int64) error {
 		return err
 	}
 
-	orders, err := b.services.GetOrders(courier.Id)
+	orders, err := b.services.GetCourierOrders(courier.Id)
 	if err != nil {
 		return err
 	}

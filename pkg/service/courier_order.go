@@ -27,8 +27,8 @@ func (s *CourierOrderService) GetActiveOrders(courierId int) ([]models.Order, er
 	return s.repo.GetActiveOrders(courierId)
 }
 
-func (s *CourierOrderService) GetOrders(courierId int) ([]models.Order, error) {
-	return s.repo.GetOrders(courierId)
+func (s *CourierOrderService) GetCourierOrders(courierId int) ([]models.Order, error) {
+	return s.repo.GetCourierOrders(courierId)
 }
 
 func (s *CourierOrderService) UpdateCourierOrder(orderId int, field string, value string) error {

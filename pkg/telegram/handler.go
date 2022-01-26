@@ -182,6 +182,11 @@ func (b *Bot) handleStandartMessages(message *tgbotapi.Message) error {
 			if err != nil {
 				return err
 			}
+		case "История заказов":
+			err := b.standartMessageAllOrders(message.Chat.ID)
+			if err != nil {
+				return err
+			}
 		case "Профиль":
 			err := b.standartMessageProfile(message.Chat.ID)
 			if err != nil {

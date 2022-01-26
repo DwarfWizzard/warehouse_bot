@@ -22,7 +22,7 @@ type CouriersOrdersRepo interface {
 	Create(orderId int, courierId int) error
 	GetCourier(orderId int) (models.Courier, error)
 	GetActiveOrders(courierId int) ([]models.Order, error)
-	GetOrders(courierId int) ([]models.Order, error)
+	GetCourierOrders(courierId int) ([]models.Order, error)
 	Update(orderId int, field string, value string) error
 	GetOrderStatus(orderId int) (string, error)
 }
@@ -49,6 +49,7 @@ type OrderRepo interface {
 	GetOrderById(orderId int) (models.Order, error)
 	GetOrderByUser(telegramId int64) (models.Order, error)
 	GetOrderUser(orderId int) (models.User, error)
+	GetAllOrdersUser(userId int) ([]models.Order, error)
 	UpdateOrder(telegramId int64, field string, value string) error
 }
 
