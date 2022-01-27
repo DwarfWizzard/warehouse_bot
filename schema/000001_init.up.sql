@@ -1,13 +1,15 @@
 CREATE TABLE users ( 
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
-    telegram_id INTEGER NOT NULL UNIQUE, name VARCHAR(255) DEFAULT "", 
+    telegram_id INTEGER NOT NULL UNIQUE, 
+    name VARCHAR(255) DEFAULT "", 
     number VARCHAR(255) DEFAULT "", 
     dialogue_status VARCHAR(255) DEFAULT "pre_registration" 
 );
 
 CREATE TABLE couriers (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
-    telegram_id INTEGER NOT NULL UNIQUE, name VARCHAR(255) DEFAULT "", 
+    telegram_id INTEGER NOT NULL UNIQUE, 
+    name VARCHAR(255) DEFAULT "", 
     number VARCHAR(255) DEFAULT "", 
     dialogue_status VARCHAR(255) DEFAULT "pre_registration" 
 );
@@ -21,8 +23,8 @@ CREATE TABLE products (
 );    
       
 CREATE TABLE shoping_cart ( 
-    order_id INTEGER REFERENCES orders (id) NOT NULL, 
-    product_id INTEGER REFERENCES products (id) NOT NULL,
+    order_id INTEGER REFERENCES orders (id) ON DELETE CASCADE NOT NULL, 
+    product_id INTEGER REFERENCES products (id) ON DELETE CASCADE NOT NULL,
     price INTEGER DEFAULT 0,
     quantity INTEGER DEFAULT 1 
 );    
@@ -38,7 +40,7 @@ CREATE TABLE orders (
 );
 
 CREATE TABLE couriers_orders (
-    courier_id INTEGER REFERENCES couriers (id) NOT NULL,
-    order_id INTEGER REFERENCES orders (id) NOT NULL,  
+    courier_id INTEGER REFERENCES couriers (id) ON DELETE CASCADE NOT NULL,
+    order_id INTEGER REFERENCES orders (id) ON DELETE CASCADE NOT NULL,  
     status VARCHAR(255) DEFAULT "active"
 );
