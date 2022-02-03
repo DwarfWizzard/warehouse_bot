@@ -30,8 +30,9 @@ var editProfileBoard = tgbotapi.NewInlineKeyboardMarkup(
 
 var editOrderUserInfoBoard = tgbotapi.NewInlineKeyboardMarkup(
 	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("🟢", "edit_order_yes"),
-		tgbotapi.NewInlineKeyboardButtonData("🔴", "edit_order_no"),
+		tgbotapi.NewInlineKeyboardButtonData("🟢", "edit_order_no"),
+		tgbotapi.NewInlineKeyboardButtonData("🟡", "edit_order_yes"),
+		tgbotapi.NewInlineKeyboardButtonData("🔴", "place_an_order_no"),
 	),
 )
 

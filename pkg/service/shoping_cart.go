@@ -15,11 +15,11 @@ func NewShopingCartService(repo repository.ShopingCartRepo) *ShopingCartService 
 	}
 }
 
-func (s *ShopingCartService) CreateCart(orderId int, productId int) error {
+func (s *ShopingCartService) CreateCart(orderId int, productId int, productPrice int, deliveryFormat string) error {
 	var cart models.ShopingCart
 	cart, err := s.repo.GetCart(orderId, productId)
 	if err != nil && (err.Error() == "sql: no rows in result set" || cart.OrderId==0) {
-		return s.repo.Create(orderId, productId)
+		return s.repo.Create(orderId, productId, productPrice, deliveryFormat)
 	} 
 	return err
 }
@@ -30,13 +30,6 @@ func (s *ShopingCartService) GetProductsFromCart(orderId int) ([]models.Product,
 	products, err := s.repo.GetProductsFromCart(orderId)
 	if err != nil {
 		return products, err
-	}
-
-	for i := range products {
-		products[i].Quantity, err = s.repo.GetQuantity(orderId, products[i].Id)
-		if err != nil {
-			return products, err
-		}
 	}
 
 	return products, err
@@ -60,4 +53,8 @@ func (s *ShopingCartService) DeleteProductFromCart(orderId int, productId int) e
 
 func (s *ShopingCartService) GetCart(orderId int, productId int) (models.ShopingCart, error) {
 	return s.repo.GetCart(orderId, productId)
+}
+
+func (s *ShopingCartService) GetCarts(orderId int) ([]models.ShopingCart, error) {
+	return s.repo.GetCarts(orderId)
 }

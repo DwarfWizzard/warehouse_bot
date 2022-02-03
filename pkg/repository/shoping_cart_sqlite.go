@@ -17,16 +17,9 @@ func NewShopingCartSQLite3(db *sqlx.DB) *ShopingCartSQLite3 {
 	}
 }
 
-func (r *ShopingCartSQLite3) Create(orderId int, productId int) error {
-	var product models.Product
-	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1", productsTable)
-	err := r.db.Get(&product, query, productId)
-	if err != nil {
-		return fmt.Errorf("repository/CreateShopingCart: [productId %d] : error %s", productId, err.Error())
-	}
-
-	query = fmt.Sprintf("INSERT INTO %s (order_id, product_id, price) VALUES ($1, $2, $3)", shopingCartTable)
-	_, err = r.db.Exec(query, orderId, productId, product.Price)
+func (r *ShopingCartSQLite3) Create(orderId int, productId int, productPrice int, deliveryFormat string) error {
+	query := fmt.Sprintf("INSERT INTO %s (order_id, product_id, price, unit_price, delivery_format) VALUES ($1, $2, $3, $4, $5)", shopingCartTable)
+	_, err := r.db.Exec(query, orderId, productId, productPrice, productPrice, deliveryFormat)
 
 	if err != nil {
 		return fmt.Errorf("repository/CreateShopingCart: [orderId %d] [productId %d] : error %s", orderId, productId, err.Error())
@@ -46,10 +39,22 @@ func (r *ShopingCartSQLite3) GetCart(orderId int, productId int) (models.Shoping
 	return cart, nil
 }
 
+func (r *ShopingCartSQLite3) GetCarts(orderId int) ([]models.ShopingCart, error) {
+	var carts []models.ShopingCart
+	query := fmt.Sprintf("SELECT * FROM %s WHERE order_id=$1", shopingCartTable)
+	err := r.db.Select(&carts, query, orderId)
+
+	if err != nil {
+		return carts, fmt.Errorf("repository/GetCarts: [orderId %d] : error %s", orderId, err.Error())
+	}
+
+	return carts, nil
+}
+
 func (r *ShopingCartSQLite3) GetProductsFromCart(orderId int) ([]models.Product, error) {
 	var products []models.Product
 	
-	query := fmt.Sprintf("SELECT tl.id, tl.title, ul.price, tl.description, tl.image_name FROM %s tl INNER JOIN %s ul WHERE ul.order_id=$1 AND ul.product_id=tl.id;", productsTable, shopingCartTable)
+	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.price_kg, tl.price_bag, tl.description, tl.image_name FROM %s tl INNER JOIN %s ul WHERE ul.order_id=$1 AND ul.product_id=tl.id;", productsTable, shopingCartTable)
 	err := r.db.Select(&products, query, orderId)
 	if err != nil {
 		return products, fmt.Errorf("repository/GetProductsFromCart: [orderId %d] : error %s", orderId, err.Error())
@@ -72,8 +77,8 @@ func (r *ShopingCartSQLite3) GetQuantity(orderId int, productId int) (int, error
 }
 
 func (r *ShopingCartSQLite3) UpdateQuantity(orderId int, productId int, quantity int) error {
-	query := fmt.Sprintf("UPDATE %s SET quantity=$1, price=(SELECT price FROM %s WHERE id=$2)*$1 WHERE order_id=$3 AND product_id=$4", shopingCartTable, productsTable)
-	_, err := r.db.Exec(query, quantity, productId, orderId, productId)
+	query := fmt.Sprintf("UPDATE %s SET quantity=$1, price=unit_price*$1 WHERE order_id=$2 AND product_id=$3", shopingCartTable)
+	_, err := r.db.Exec(query, quantity, orderId, productId)
 
 	if err != nil {
 		return fmt.Errorf("repository/UpdateQuantity: [orderId %d] [productId %d] [quantity %d]: error %s", orderId, productId, quantity, err.Error())

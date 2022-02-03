@@ -17,7 +17,8 @@ const (
 	callbackRegLastYes            = "reg_last_yes"
 	callbackRegLastNo             = "reg_last_no"
 	callbackChangePage            = "ch_page"
-	callbackAddCart               = "add_cart"
+	callbackAddCartKilo           = "add_cart_kilo"
+	callbackAddCartBag            = "add_cart_bag"
 	callbackReduceQuantity        = "reduce_quantity"
 	callbackIncreaseQuantity      = "increase_quantity"
 	callbackEditProfileYes        = "edit_profile_yes"
@@ -53,13 +54,23 @@ func (b *Bot) handleCallbacks(callbackQuery *tgbotapi.CallbackQuery) error {
 		if err != nil {
 			return err
 		}
+		return nil
 	}
 
-	if strings.Contains(callbackQuery.Data, callbackAddCart) {
+	if strings.Contains(callbackQuery.Data, callbackAddCartKilo) {
 		err := b.callbackAddToCart(callbackQuery)
 		if err != nil {
 			return err
 		}
+		return nil
+	}
+
+	if strings.Contains(callbackQuery.Data, callbackAddCartBag) {
+		err := b.callbackAddToCart(callbackQuery)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
 
 	if strings.Contains(callbackQuery.Data, callbackReduceQuantity) {
@@ -67,6 +78,7 @@ func (b *Bot) handleCallbacks(callbackQuery *tgbotapi.CallbackQuery) error {
 		if err != nil {
 			return err
 		}
+		return nil
 	}
 
 	if strings.Contains(callbackQuery.Data, callbackIncreaseQuantity) {
@@ -74,6 +86,7 @@ func (b *Bot) handleCallbacks(callbackQuery *tgbotapi.CallbackQuery) error {
 		if err != nil {
 			return err
 		}
+		return nil
 	}
 
 	if strings.Contains(callbackQuery.Data, callbackDeleteFromCart) {
@@ -81,6 +94,7 @@ func (b *Bot) handleCallbacks(callbackQuery *tgbotapi.CallbackQuery) error {
 		if err != nil {
 			return err
 		}
+		return nil
 	}
 
 	if strings.Contains(callbackQuery.Data, callbackAcceptOrder) {
@@ -88,6 +102,7 @@ func (b *Bot) handleCallbacks(callbackQuery *tgbotapi.CallbackQuery) error {
 		if err != nil {
 			return err
 		}
+		return nil
 	}
 
 	if strings.Contains(callbackQuery.Data, callbackFinishOrder) {
@@ -95,6 +110,7 @@ func (b *Bot) handleCallbacks(callbackQuery *tgbotapi.CallbackQuery) error {
 		if err != nil {
 			return err
 		}
+		return nil
 	}
 
 	switch callbackQuery.Data {

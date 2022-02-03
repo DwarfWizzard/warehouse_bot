@@ -36,9 +36,10 @@ type Products interface {
 }
 
 type ShopingCart interface {
-	CreateCart(orderId int, productId int) error 
+	CreateCart(orderId int, productId int, productPrice int, deliveryFormat string) error 
 	GetProductsFromCart(orderId int) ([]models.Product, error)
 	GetCart(orderId int, productId int) (models.ShopingCart, error)
+	GetCarts(orderId int) ([]models.ShopingCart, error)
 	GetQuantity(orderId int, productId int) (int, error)
 	UpdateQuantity(orderId int, productId int, quantity int) error
 	DeleteCart(orderId int) error

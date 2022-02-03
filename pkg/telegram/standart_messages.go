@@ -250,7 +250,12 @@ func (b *Bot) standartMessageShopingCart(chatId int64) error {
 		return err
 	}
 
-	productsList := b.generateShopingCartProductCards(products, chatId)
+	carts, err := b.services.GetCarts(order.Id)
+	if err != nil {
+		return err
+	}
+
+	productsList := b.generateShopingCartProductCards(products, carts,chatId)
 
 	b.sendMessages(productsList...)
 	if len(products) == 0 {

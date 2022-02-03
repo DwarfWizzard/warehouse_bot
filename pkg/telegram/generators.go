@@ -13,20 +13,23 @@ import (
 func (b *Bot) generateProductListCardsMessages(products []models.Product, chatId int64) []tgbotapi.Chattable {
 	var productsCards []tgbotapi.Chattable
 	for _, product := range products {
+		productText := fmt.Sprintf("%s\n\nЦена за 1 кг: %d.%d₽\nЦена за 1 мешок: %d.%d₽\n\nОписание: %s", product.Title, product.PriceKilo/100, product.PriceKilo%100, product.PriceBag/100, product.PriceBag%100, product.Description)
 
-		productText := fmt.Sprintf("%s\n\nЦена: %d.%d₽\n\nОписание: %s", product.Title, product.Price/100, product.Price%100, product.Description)
-		photoBytes, err := ioutil.ReadFile(os.Getenv("IMAGE_PATH")+"/"+product.ImageName)
+		photoBytes, err := ioutil.ReadFile(os.Getenv("IMAGE_PATH") + "/" + product.ImageName)
 		if err != nil {
 			productCard := tgbotapi.NewMessage(chatId, productText)
 			productCard.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
-			tgbotapi.NewInlineKeyboardRow(
-				tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину", fmt.Sprintf("add_cart %d", product.Id)),
+				tgbotapi.NewInlineKeyboardRow(
+					tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину кг", fmt.Sprintf("add_cart_kilo %d-%d-%s", product.Id, product.PriceKilo, "кг")),
+				),
+				tgbotapi.NewInlineKeyboardRow(
+					tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину мешок", fmt.Sprintf("add_cart_bag %d-%d-%s", product.Id, product.PriceBag, "мешок")),
 				),
 			)
 			productsCards = append(productsCards, productCard)
 		} else {
-			file := tgbotapi.FileBytes {
-				Name: "asd",
+			file := tgbotapi.FileBytes{
+				Name:  product.ImageName,
 				Bytes: photoBytes,
 			}
 
@@ -44,10 +47,10 @@ func (b *Bot) generateProductListCardsMessages(products []models.Product, chatId
 	return productsCards
 }
 
-func (b *Bot) generateShopingCartProductCards(products []models.Product, chatId int64) []tgbotapi.Chattable {
+func (b *Bot) generateShopingCartProductCards(products []models.Product, carts []models.ShopingCart, chatId int64) []tgbotapi.Chattable {
 	var productsCards []tgbotapi.Chattable
-	for _, product := range products {
-		productText := fmt.Sprintf("%s x%d\n\nЦена: %d.%d₽\n\nОписание: %s", product.Title, product.Quantity, product.Price/100, product.Price%100, product.Description)
+	for i, product := range products {
+		productText := fmt.Sprintf("%s x%d %s\n\nЦена: %d.%d₽\n\nОписание: %s", product.Title, carts[i].Quantity, carts[i].DeliveryFormat, carts[i].Price/100, carts[i].Price%100, product.Description)
 		productCard := tgbotapi.NewMessage(chatId, productText)
 		productCard.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 			tgbotapi.NewInlineKeyboardRow(
@@ -148,7 +151,7 @@ func (b *Bot) generateAllOrderCards(orders []models.Order, chatId int64) []tgbot
 			b.services.PrintLog(err.Error(), 1)
 			continue
 		}
-		
+
 		orderCard := tgbotapi.NewMessage(chatId, orderText)
 
 		orderCards = append(orderCards, orderCard)
@@ -163,11 +166,16 @@ func (b *Bot) generateOrderText(order models.Order) (string, error) {
 		return "", err
 	}
 
+	carts, err := b.services.GetCarts(order.Id)
+	if err != nil {
+		return "", err
+	}
+
 	var productListText string = fmt.Sprintf("Заказ №%d\n\nСписок продуктов:\n", order.Id)
 	var totalPrice int
 	for i, product := range products {
-		productListText += fmt.Sprintf("\t%d. %s x%d %d.%d₽\n\n", i+1, product.Title, product.Quantity, (product.Price*product.Quantity)/100, (product.Price*product.Quantity)%100)
-		totalPrice += product.Price * product.Quantity
+		productListText += fmt.Sprintf("\t%d. %s x%d %s %d.%d₽\n\n", i+1, product.Title, carts[i].Quantity, carts[i].DeliveryFormat, (carts[i].Price)/100, (carts[i].Price)%100)
+		totalPrice += carts[i].Price
 	}
 
 	productListText += fmt.Sprintf("Общая сумма заказа: %d.%d₽\n\nДанные о заказчике:\n\tИмя заказчика: %s\n\tНомер заказчика: %s\n\tАдрес доставки: %s", totalPrice/100, totalPrice%100, order.UserName, order.UserNumber, order.DeliveryAdress)

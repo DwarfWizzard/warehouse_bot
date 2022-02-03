@@ -154,17 +154,25 @@ func (b *Bot) callbackChangePage(callbackQuery *tgbotapi.CallbackQuery) error {
 func (b *Bot) callbackAddToCart(callbackQuery *tgbotapi.CallbackQuery) error {
 	chatId := callbackQuery.From.ID
 	cbSplit := strings.Split(callbackQuery.Data, " ")
-	productId, err := strconv.Atoi(cbSplit[1])
+	idPrice := strings.Split(cbSplit[1], "-")
+	productId, err := strconv.Atoi(idPrice[0])
 	if err != nil {
 		return err
 	}
+
+	productPrice, err := strconv.Atoi(idPrice[1])
+	if err != nil {
+		return err
+	}
+
+	deliveryFormat := idPrice[2]
 
 	order, err := b.services.GetOrderByUser(chatId)
 	if err != nil {
 		return err
 	}
 
-	err = b.services.CreateCart(order.Id, productId)
+	err = b.services.CreateCart(order.Id, productId, productPrice, deliveryFormat)
 
 	return err
 }
@@ -241,7 +249,6 @@ func (b *Bot) callbackIncreaseQuantity(callbackQuery *tgbotapi.CallbackQuery) er
 	if err != nil {
 		return err
 	}
-
 	if cbSplit[0] == "increase_quantity_10" {
 		quantity += 10
 		err = b.services.UpdateQuantity(order.Id, productId, quantity)
@@ -297,7 +304,7 @@ func (b *Bot) callbackDeleteFromCart(callbackQuery *tgbotapi.CallbackQuery) erro
 func (b *Bot) callbackPlaceAnOrderYes(callbackQuery *tgbotapi.CallbackQuery) error {
 	chatId := callbackQuery.From.ID
 
-	err := b.deleteReplyMarkup(callbackQuery.Message)
+	err := b.deleteMessage(chatId, callbackQuery.Message.MessageID)
 	if err != nil {
 		return err
 	}
@@ -334,7 +341,7 @@ func (b *Bot) callbackPlaceAnOrderYes(callbackQuery *tgbotapi.CallbackQuery) err
 func (b *Bot) callbackPlaceAnOrderNo(callbackQuery *tgbotapi.CallbackQuery) error {
 	chatId := callbackQuery.From.ID
 
-	err := b.deleteReplyMarkup(callbackQuery.Message)
+	err := b.deleteMessage(chatId, callbackQuery.Message.MessageID)
 	if err != nil {
 		return err
 	}
@@ -364,7 +371,7 @@ func (b *Bot) callbackPlaceAnOrderNo(callbackQuery *tgbotapi.CallbackQuery) erro
 
 //Редактирование заказа
 func (b *Bot) callbackEditOrderYes(callbackQuery *tgbotapi.CallbackQuery) error {
-	err := b.deleteReplyMarkup(callbackQuery.Message)
+	err := b.deleteMessage(callbackQuery.From.ID, callbackQuery.Message.MessageID)
 	if err != nil {
 		return err
 	}
@@ -385,7 +392,7 @@ func (b *Bot) callbackEditOrderYes(callbackQuery *tgbotapi.CallbackQuery) error 
 }
 
 func (b *Bot) callbackEditOrderNo(callbackQuery *tgbotapi.CallbackQuery) error {
-	err := b.deleteReplyMarkup(callbackQuery.Message)
+	err := b.deleteMessage(callbackQuery.From.ID, callbackQuery.Message.MessageID)
 	if err != nil {
 		return err
 	}
@@ -431,7 +438,7 @@ func (b *Bot) updatedCartProductCardText(orderId int, productId int) (string, er
 		return "", err
 	}
 
-	newText := fmt.Sprintf("%s x%d\n\nЦена: %d.%d₽\n\nОписание: %s", product.Title, cart.Quantity, cart.Price/100, cart.Price%100, product.Description)
+	newText := fmt.Sprintf("%s x%d %s\n\nЦена: %d.%d₽\n\nОписание: %s", product.Title, cart.Quantity, cart.DeliveryFormat, cart.Price/100, cart.Price%100, product.Description)
 	return newText, nil
 }
 

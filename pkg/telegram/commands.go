@@ -7,9 +7,9 @@ import (
 )
 
 func (b *Bot) commandStart(message *tgbotapi.Message) error {
-	user, err := b.services.GetUser(message.Chat.ID)
+	_, err := b.services.GetUser(message.Chat.ID)
 
-	if user.Id == 0 || strings.Contains(err.Error(), "sql: no rows in result set") {
+	if err != nil && strings.Contains(err.Error(), "sql: no rows in result set") {
 		if err := b.services.CreateUser(message.Chat.ID); err != nil {
 			return err
 		}
@@ -19,6 +19,8 @@ func (b *Bot) commandStart(message *tgbotapi.Message) error {
 		if err != nil {
 			return err
 		}
+	} else if err != nil {
+		return err
 	}
 	
 	return nil

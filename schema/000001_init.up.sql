@@ -17,7 +17,8 @@ CREATE TABLE couriers (
 CREATE TABLE products ( 
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
     title VARCHAR(255) DEFAULT "", 
-    price INTEGER DEFAULT 0, 
+    price_kg INTEGER DEFAULT 0,
+    price_bag INTEGER DEFAULT 0,
     description TEXT DEFAULT "",
     image_name TEXT DEFAULT ""
 );    
@@ -26,6 +27,8 @@ CREATE TABLE shoping_cart (
     order_id INTEGER REFERENCES orders (id) ON DELETE CASCADE NOT NULL, 
     product_id INTEGER REFERENCES products (id) ON DELETE CASCADE NOT NULL,
     price INTEGER DEFAULT 0,
+    unit_price INTEGER DEFAULT 0,
+    delivery_format VARCHAR(5) DEFAULT "",
     quantity INTEGER DEFAULT 1 
 );    
       

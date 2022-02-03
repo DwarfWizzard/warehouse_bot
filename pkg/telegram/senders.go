@@ -111,7 +111,7 @@ func (b *Bot) messageOrderLast(chatId int64) error {
 		return fmt.Errorf("telegram/messageOrderLast: error %s", err.Error())
 	}
 
-	msg = tgbotapi.NewMessage(chatId, "Изменить личные данные для заказа?")
+	msg = tgbotapi.NewMessage(chatId, "Нажмите зеленую кнопку, чтобы завершить заказ.\nЖелтую, если хотите изменить данные о заказчике.\nКрасную, чтобы отменить заказ")
 	msg.ReplyMarkup = editOrderUserInfoBoard
 	_, err = b.bot.Send(msg)
 	if err != nil {
