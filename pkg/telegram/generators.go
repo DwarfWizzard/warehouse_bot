@@ -37,7 +37,10 @@ func (b *Bot) generateProductListCardsMessages(products []models.Product, chatId
 			productCard.Caption = productText
 			productCard.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 				tgbotapi.NewInlineKeyboardRow(
-					tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину", fmt.Sprintf("add_cart %d", product.Id)),
+					tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину кг", fmt.Sprintf("add_cart_kilo %d-%d-%s", product.Id, product.PriceKilo, "кг")),
+				),
+				tgbotapi.NewInlineKeyboardRow(
+					tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину мешок", fmt.Sprintf("add_cart_bag %d-%d-%s", product.Id, product.PriceBag, "мешок")),
 				),
 			)
 			productsCards = append(productsCards, productCard)
