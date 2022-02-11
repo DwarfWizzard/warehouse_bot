@@ -13,7 +13,7 @@ import (
 func (b *Bot) generateProductListCardsMessages(products []models.Product, chatId int64) []tgbotapi.Chattable {
 	var productsCards []tgbotapi.Chattable
 	for _, product := range products {
-		productText := fmt.Sprintf("%s\n\nЦена за 1 кг: %d.%d₽\nЦена за 1 мешок: %d.%d₽\n\nОписание: %s", product.Title, product.PriceKilo/100, product.PriceKilo%100, product.PriceBag/100, product.PriceBag%100, product.Description)
+		productText := fmt.Sprintf("%s\n\nРозничная цена: %d.%d₽\nОптовая цена: %d.%d₽\n\nОписание: %s", product.Title, product.PriceKilo/100, product.PriceKilo%100, product.PriceBag/100, product.PriceBag%100, product.Description)
 
 		photoBytes, err := ioutil.ReadFile(os.Getenv("IMAGE_PATH") + "/" + product.ImageName)
 		if err != nil {
@@ -28,6 +28,7 @@ func (b *Bot) generateProductListCardsMessages(products []models.Product, chatId
 			)
 			productsCards = append(productsCards, productCard)
 		} else {
+			log.Println(product.ImageName)
 			file := tgbotapi.FileBytes{
 				Name:  product.ImageName,
 				Bytes: photoBytes,
