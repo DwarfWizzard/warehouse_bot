@@ -13,7 +13,7 @@ func (b *Bot) commandStart(message *tgbotapi.Message) error {
 		if err := b.services.CreateUser(message.Chat.ID); err != nil {
 			return err
 		}
-		err := b.sendMessageWithKeyboard(message.Chat.ID, "Здравствуйте! С вами на связи бот торговой базы. \nВас я вижу первый раз. \nНажмите на зеленую кнопку, чтобы начать процесс регистрации.",
+		err := b.sendMessageWithKeyboard(message.Chat.ID, "Здравствуйте! С вами на связи бот торговой базы \"ПРОСТОРОС\". \nВас я вижу первый раз. \nНажмите на зеленую кнопку, чтобы начать процесс регистрации.",
 			preRegistrationBoard)
 
 		if err != nil {

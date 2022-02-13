@@ -20,15 +20,14 @@ func (b *Bot) generateProductListCardsMessages(products []models.Product, chatId
 			productCard := tgbotapi.NewMessage(chatId, productText)
 			productCard.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 				tgbotapi.NewInlineKeyboardRow(
-					tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину кг", fmt.Sprintf("add_cart_kilo %d-%d-%s", product.Id, product.PriceKilo, "кг")),
+					tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину по розничной цене", fmt.Sprintf("add_cart_kilo %d-%d-%s", product.Id, product.PriceKilo, "кг")),
 				),
 				tgbotapi.NewInlineKeyboardRow(
-					tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину мешок", fmt.Sprintf("add_cart_bag %d-%d-%s", product.Id, product.PriceBag, "мешок")),
+					tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину по оптовой цене", fmt.Sprintf("add_cart_bag %d-%d-%s", product.Id, product.PriceBag, "мешок")),
 				),
 			)
 			productsCards = append(productsCards, productCard)
 		} else {
-			log.Println(product.ImageName)
 			file := tgbotapi.FileBytes{
 				Name:  product.ImageName,
 				Bytes: photoBytes,
@@ -38,10 +37,10 @@ func (b *Bot) generateProductListCardsMessages(products []models.Product, chatId
 			productCard.Caption = productText
 			productCard.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 				tgbotapi.NewInlineKeyboardRow(
-					tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину кг", fmt.Sprintf("add_cart_kilo %d-%d-%s", product.Id, product.PriceKilo, "кг")),
+					tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину по розничной цене", fmt.Sprintf("add_cart_kilo %d-%d-%s", product.Id, product.PriceKilo, "кг")),
 				),
 				tgbotapi.NewInlineKeyboardRow(
-					tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину мешок", fmt.Sprintf("add_cart_bag %d-%d-%s", product.Id, product.PriceBag, "мешок")),
+					tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину по оптовой цене", fmt.Sprintf("add_cart_bag %d-%d-%s", product.Id, product.PriceBag, "мешок")),
 				),
 			)
 			productsCards = append(productsCards, productCard)
@@ -86,7 +85,7 @@ func (b *Bot) generateChangePageMessage(chatId int64, page int) (tgbotapi.Messag
 		pageNum = productsNum / 5
 	}
 
-	pageMsg := tgbotapi.NewMessage(chatId, fmt.Sprintf("%d/%d", page, pageNum))
+	pageMsg := tgbotapi.NewMessage(chatId, fmt.Sprintf("Страница %d/%d", page, pageNum))
 
 	if productsNum > 5 {
 		var state int
