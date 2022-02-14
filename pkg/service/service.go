@@ -68,7 +68,7 @@ type Service struct {
 	Logger
 }
 
-func NewService(repos *repository.Repository, infoLogFile *os.File, errLogFile *os.File) *Service {
+func NewService(repos *repository.Repository, errLogFile *os.File) *Service {
 	return &Service{
 		Users: NewUserService(repos.UsersRepo),
 		Couriers: NewCourierService(repos.CouriersRepo),
@@ -76,6 +76,6 @@ func NewService(repos *repository.Repository, infoLogFile *os.File, errLogFile *
 		Products: NewProductsService(repos.ProductsRepo),
 		ShopingCart: NewShopingCartService(repos.ShopingCartRepo),
 		Order: NewOrderService(repos.OrderRepo),
-		Logger: NewServiceLogger(infoLogFile, errLogFile),
+		Logger: NewServiceLogger( errLogFile),
 	}
 }

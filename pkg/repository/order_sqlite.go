@@ -59,7 +59,7 @@ func (r *OrderSQLite3) GetOrderByUser(telegramId int64) (models.Order, error) {
 		return order, fmt.Errorf("repository/GetOrder: [telegramId %d] : error %s", telegramId, err.Error())
 	}
 
-	query = fmt.Sprintf("SELECT * FROM %s WHERE user_id=$1 AND order_status=\"in_progress\"", ordersTable)
+	query = fmt.Sprintf("SELECT * FROM %s WHERE user_id=$1 AND order_status='in_progress' ", ordersTable)
 	err = r.db.Get(&order, query, userId)
 	if err != nil {
 		return order, fmt.Errorf("repository/GetOrder: [user_id %d] : error %s",userId, err.Error())
@@ -89,7 +89,7 @@ func (r *OrderSQLite3) UpdateOrder(telegramId int64, field string, value string)
 		return fmt.Errorf("repository/UpdateOrder: [telegramId %d]  : error %s", telegramId,  err.Error())
 	}
 
-	query = fmt.Sprintf("UPDATE %s SET %s=$1 WHERE user_id=$2 AND order_status=\"in_progress\"", ordersTable, field)
+	query = fmt.Sprintf("UPDATE %s SET %s=$1 WHERE user_id=$2 AND order_status='in_progress'", ordersTable, field)
 	_, err = r.db.Exec(query, value, userId)
 	if err != nil {
 		return fmt.Errorf("repository/UpdateOrder: [field %s] [userId %d] [value %s] : error %s", field, userId,value, err.Error())

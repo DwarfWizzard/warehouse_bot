@@ -40,7 +40,7 @@ func (r *CouriersOrdersSQLite3) GetCourier(orderId int) (models.Courier, error) 
 
 func (r *CouriersOrdersSQLite3) GetActiveOrders(courierId int) ([]models.Order, error) {
 	var orders []models.Order
-	query := fmt.Sprintf("SELECT tl.id, tl.user_id, tl.user_name, tl.user_number, tl.delivery_adress, tl.order_date, tl.order_status FROM %s tl INNER JOIN %s ul ON ul.order_id=tl.id WHERE ul.status=\"active\" AND ul.courier_id=$1", ordersTable,couriersOrdersTable)
+	query := fmt.Sprintf("SELECT tl.id, tl.user_id, tl.user_name, tl.user_number, tl.delivery_adress, tl.order_date, tl.order_status FROM %s tl INNER JOIN %s ul ON ul.order_id=tl.id WHERE ul.status='active' AND ul.courier_id=$1", ordersTable,couriersOrdersTable)
 	err := r.db.Select(&orders, query, courierId)
 	if err != nil {
 		return orders, fmt.Errorf("repository/GetActiveOrders: [courierId %d] : error %s", courierId, err.Error())
@@ -61,7 +61,7 @@ func (r *CouriersOrdersSQLite3) GetCourierOrders(courierId int) ([]models.Order,
 }
 
 func (r *CouriersOrdersSQLite3) Update(orderId int, field string, value string) error {
-	query := fmt.Sprintf("UPDATE %s SET %s=$1 WHERE order_id=$2 AND status=\"active\"", couriersOrdersTable, field)
+	query := fmt.Sprintf("UPDATE %s SET %s=$1 WHERE order_id=$2 AND status='active'", couriersOrdersTable, field)
 	_, err := r.db.Exec(query, value, orderId)
 	if err != nil {
 		return fmt.Errorf("repository/UpdateCouriersOrders: [orderId %d] [filed %s] [value %s] : %s",orderId, field, value, err.Error())

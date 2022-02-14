@@ -32,7 +32,7 @@ func (r *ProductsSQLite3) GetProduct(productId int) (models.Product, error) {
 func (r *ProductsSQLite3) GetProducts(offset int) ([]models.Product, error) {
 	var products []models.Product
 
-	query := fmt.Sprintf("SELECT * FROM %s LIMIT 5 OFFSET $2", productsTable)
+	query := fmt.Sprintf("SELECT * FROM %s LIMIT 5 OFFSET $1", productsTable)
 	err := r.db.Select(&products, query, offset)
 	if err != nil {
 		return nil, fmt.Errorf("repositoty/GetProducts: [offset%d] : error %s", offset, err.Error())

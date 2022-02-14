@@ -12,6 +12,8 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/spf13/viper"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -19,24 +21,31 @@ func main() {
 		log.Fatalf("error loading env variables: %s", err.Error())
 	}
 
-	db, err := repository.NewSQLite3DB(os.Getenv("DB_PATH"))
+	if err := initConfig(); err != nil {
+		log.Fatalf("error initializing configs: %s", err.Error())
+	}
+
+	db, err := repository.NewPostgres(repository.Config{
+		Host:     viper.GetString("db.host"),
+		Port:     viper.GetString("db.port"),
+		Username: viper.GetString("db.username"),
+		DBName:   viper.GetString("db.dbname"),
+		SSLMode:  viper.GetString("db.sslmode"),
+		Password: os.Getenv("DB_PASSWORD"),
+	})
 	if err != nil {
 		log.Fatalf("failed to initialize db: %s", err.Error())
 	}
 
 	year, month, day := time.Now().Date()
 
-	infoLogFile, err := os.OpenFile("logs/"+fmt.Sprintf("info_%v-%v-%v.log", year, month, day), os.O_RDWR|os.O_CREATE, 0666)
-	if err != nil {
-		log.Fatalf("run error: %s", err.Error())
-	}
 	errLogFile, err := os.OpenFile("logs/"+fmt.Sprintf("err_%v-%v-%v.log", year, month, day), os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		log.Fatalf("run error: %s", err.Error())
 	}
 
 	repos := repository.NewRepository(db)
-	services := service.NewService(repos, infoLogFile, errLogFile)
+	services := service.NewService(repos, errLogFile)
 
 	token := os.Getenv("TELEGRAM_BOT_TOKEN")
 	botApi, err := tgbotapi.NewBotAPI(token)
@@ -51,4 +60,10 @@ func main() {
 	if err := bot.Start(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func initConfig() error {
+	viper.AddConfigPath("configs")
+	viper.SetConfigName("config")
+	return viper.ReadInConfig()
 }

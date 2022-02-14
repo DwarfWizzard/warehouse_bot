@@ -1,8 +1,8 @@
 DROP TABLE couriers_orders;
 
-DROP TABLE orders;
-
 DROP TABLE shoping_cart;
+
+DROP TABLE orders;
 
 DROP TABLE products;
 
