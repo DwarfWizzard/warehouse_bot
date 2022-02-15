@@ -58,6 +58,11 @@ type Logger interface{
 	PrintLog(message string, flag int)
 }
 
+type Subsidiary interface{
+	GetSubsidiary(cityName string) (models.Subsidiary, error)
+	GetSubsidiarys() ([]models.Subsidiary, error)
+}
+
 type Service struct {
 	Users
 	Couriers
@@ -66,6 +71,7 @@ type Service struct {
 	ShopingCart
 	Order
 	Logger
+	Subsidiary
 }
 
 func NewService(repos *repository.Repository, errLogFile *os.File) *Service {
@@ -77,5 +83,6 @@ func NewService(repos *repository.Repository, errLogFile *os.File) *Service {
 		ShopingCart: NewShopingCartService(repos.ShopingCartRepo),
 		Order: NewOrderService(repos.OrderRepo),
 		Logger: NewServiceLogger( errLogFile),
+		Subsidiary: NewSubsidaryService(repos.SubsidiaryRepo),
 	}
 }

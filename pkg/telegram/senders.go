@@ -1,9 +1,9 @@
 package telegram
 
 import (
+	"errors"
 	"fmt"
-	"os"
-	"strconv"
+	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -80,7 +80,7 @@ func (b *Bot) messageRegistrationLast(chatId int64) error {
 		return err
 	}
 
-	err = b.sendMessageWithKeyboard(chatId, fmt.Sprintf("Проверьте верность указанных данных. \nИмя: %s\nНомер: %s", user.Name, user.Number), registrationLastBoard)
+	err = b.sendMessageWithKeyboard(chatId, fmt.Sprintf("Проверьте верность указанных данных. \nИмя: %s\nНомер: %s\nГород: %s", user.Name, user.Number, user.City), registrationLastBoard)
 	return err
 }
 
@@ -132,12 +132,30 @@ func (b *Bot) sendMessageToDeliveryService(chatId int64) error {
 		return err
 	}
 	
-	expressChatId, err := strconv.ParseInt(os.Getenv("EXPRESS_CHAT_ID"), 0, 64)
-	if err != nil {
-		return fmt.Errorf("telegram/sendMessageToDeliveryService/parseInt: error %s", err.Error())
+	subsidiary, err := b.services.GetSubsidiary(order.UserCity)
+	if err != nil && strings.Contains(err.Error(), "error sql: no rows in result set") {
+		err = b.services.UpdateUser(chatId, "dialogue_status", "order_add-city")
+		if err != nil {
+			return err
+		}
+	
+		kb, err := b.CreateSubsidarysKB()
+		if err != nil {
+			return err
+		}
+	
+		err = b.sendMessageWithKeyboard(chatId, "Данный филиал отсутсвует. Пожалуйста, выберите филиал из появившегося списка:", kb)
+		if err != nil {
+			return err
+		}
+
+		return errors.New("invalid subsidiary")
+		
+	} else if err != nil {
+		return err
 	}
 
-	msg := tgbotapi.NewMessage(expressChatId, productListText)
+	msg := tgbotapi.NewMessage(subsidiary.ChatId, productListText)
 	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("Принять заказ", fmt.Sprintf("accept_order %d", order.Id)),

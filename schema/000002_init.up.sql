@@ -1,0 +1,7 @@
+CREATE TABLE subsidiary ( 
+    id SERIAL PRIMARY KEY NOT NULL,
+    city VARCHAR(255),
+    chat_id INTEGER
+);
+
+ALTER TABLE users ADD COLUMN city VARCHAR(255) DEFAULT ' ';

@@ -65,3 +65,4 @@ var courierMenuKeyboard = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButton("Профиль"),
 	),
 )
+

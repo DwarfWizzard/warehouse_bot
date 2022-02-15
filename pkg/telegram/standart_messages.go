@@ -1,9 +1,11 @@
 package telegram
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
+	"unicode"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -23,6 +25,11 @@ func (b *Bot) registration(message *tgbotapi.Message) error {
 
 	case "registration_add-number":
 		err := b.standartMessageRegistrationNumber(message)
+		if err != nil {
+			return err
+		}
+	case "registration_add-city":
+		err := b.standartMessageRegistrationCity(message)
 		if err != nil {
 			return err
 		}
@@ -71,8 +78,14 @@ func (b *Bot) placeAnOrder(message *tgbotapi.Message) error {
 		if err != nil {
 			return err
 		}
+
 	case "order_add-number":
 		err = b.standartMessageAddOrderNumber(message)
+		if err != nil {
+			return err
+		}
+	case "order_add-city":
+		err = b.standartMessageAddOrderCity(message)
 		if err != nil {
 			return err
 		}
@@ -107,9 +120,32 @@ func (b *Bot) standartMessageRegistrationNumber(message *tgbotapi.Message) error
 		return err
 	}
 
+	err = b.services.UpdateUser(chatId, "dialogue_status", "registration_add-city")
+	if err != nil {
+		return err
+	}
+
+	kb, err := b.CreateSubsidarysKB()
+	if err != nil {
+		return err
+	}
+	
+	err = b.sendMessageWithKeyboard(chatId, "И теперь выберете город из списка.\nЕсли вашего города в списке нет, значит филлиала 'ПРОСТОРОС' пока что отсутвует.", kb)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (b *Bot) standartMessageRegistrationCity(message *tgbotapi.Message) error {
+	chatId := message.Chat.ID
+	err := b.services.UpdateUser(chatId, "city", message.Text)
+	if err != nil {
+		return err
+	}
+
 	err = b.services.UpdateUser(chatId, "dialogue_status", "normal")
 	if err != nil {
-		log.Println(12312)
 		return err
 	}
 
@@ -181,6 +217,15 @@ func (b *Bot) standartMessageCatalog(chatId int64) error {
 
 func (b *Bot) standartMessageAddOrderAddress(message *tgbotapi.Message) error {
 	chatId := message.Chat.ID
+
+	if checkAdress(message.Text) != nil {
+		err := b.sendMessage(chatId, "Некорректный адрес! Укажите адрес заново.")
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
 	err := b.services.UpdateOrder(chatId, "delivery_adress", message.Text)
 	if err != nil {
 		return err
@@ -194,6 +239,26 @@ func (b *Bot) standartMessageAddOrderAddress(message *tgbotapi.Message) error {
 	err = b.messageOrderLast(chatId)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func checkAdress(address string) error {
+	msgSplit := strings.Split(address, " ")
+	if len(msgSplit) < 2 {
+		return errors.New("invalid address")
+	}
+
+	var count int = 0
+	for _, r := range address {
+		if unicode.IsDigit(r) {
+			count++
+		}
+	}
+
+	if count == 0 {
+		return errors.New("invalid address")
 	}
 
 	return nil
@@ -222,6 +287,32 @@ func (b *Bot) standartMessageAddOrderName(message *tgbotapi.Message) error {
 func (b *Bot) standartMessageAddOrderNumber(message *tgbotapi.Message) error {
 	chatId := message.Chat.ID
 	err := b.services.UpdateOrder(chatId, "user_number", message.Text)
+	if err != nil {
+		return err
+	}
+
+	err = b.services.UpdateUser(chatId, "dialogue_status", "order_add-city")
+	if err != nil {
+		return err
+	}
+
+	kb, err := b.CreateSubsidarysKB()
+	if err != nil {
+		log.Println(1111111)
+		return err
+	}
+
+	err = b.sendMessageWithKeyboard(chatId, "Выберите филиал из появившегося списка", kb)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (b *Bot) standartMessageAddOrderCity(message *tgbotapi.Message) error {
+	chatId := message.Chat.ID
+	err := b.services.UpdateOrder(chatId, "user_city", message.Text)
 	if err != nil {
 		return err
 	}
@@ -273,7 +364,7 @@ func (b *Bot) standartMessageProfile(chatId int64) error {
 		return err
 	}
 
-	b.sendMessageWithKeyboard(chatId, fmt.Sprintf("Ваш профиль.\n\nИмя: %s\n\nНомер телефона: %s\n\nРедактировать профиль?", user.Name, user.Number), editProfileBoard)
+	b.sendMessageWithKeyboard(chatId, fmt.Sprintf("Ваш профиль.\n\nИмя: %s\n\nНомер телефона: %s\nГород: %s\n\nРедактировать профиль?", user.Name, user.Number, user.City), editProfileBoard)
 	return nil
 }
 

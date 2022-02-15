@@ -181,7 +181,28 @@ func (b *Bot) generateOrderText(order models.Order) (string, error) {
 		totalPrice += carts[i].Price
 	}
 
-	productListText += fmt.Sprintf("Общая сумма заказа: %d.%d₽\n\nДанные о заказчике:\n\tИмя заказчика: %s\n\tНомер заказчика: %s\n\tАдрес доставки: %s", totalPrice/100, totalPrice%100, order.UserName, order.UserNumber, order.DeliveryAdress)
+	productListText += fmt.Sprintf("Общая сумма заказа: %d.%d₽\n\nДанные о заказчике:\n\tИмя заказчика: %s\n\tНомер заказчика: %s \n\tФилиал: %s\n\tАдрес доставки: %s", totalPrice/100, totalPrice%100, order.UserName, order.UserNumber, order.UserCity, order.DeliveryAdress)
 
 	return productListText, nil
+}
+
+func (b *Bot) CreateSubsidarysKB() (tgbotapi.ReplyKeyboardMarkup, error) {
+	var kb tgbotapi.ReplyKeyboardMarkup
+
+	subsidiarys, err := b.services.GetSubsidiarys()
+	if err != nil {
+		return kb, err
+	}
+
+	var buttons []tgbotapi.KeyboardButton
+	for _, s := range subsidiarys {
+		button := tgbotapi.NewKeyboardButton(s.City)
+		buttons = append(buttons, button)
+	}
+
+	kb = tgbotapi.NewReplyKeyboard(tgbotapi.NewKeyboardButtonRow(
+		buttons...,
+	))
+
+	return kb, nil
 }

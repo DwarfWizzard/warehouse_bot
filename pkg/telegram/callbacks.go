@@ -404,17 +404,31 @@ func (b *Bot) callbackEditOrderNo(callbackQuery *tgbotapi.CallbackQuery) error {
 		return err
 	}
 
+	if order.UserName == "" || order.UserNumber == "" || order.UserCity == "" || order.DeliveryAdress == "" {
+		err = b.services.UpdateUser(chatId, "dialogue_status", "order_add-name")
+		if err != nil {
+			return err
+		}
+
+		err = b.sendMessage(chatId, "Некорректные данные: Одно из полей пусто! Укажите имя.")
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
 	err = b.services.UpdateUser(chatId, "dialogue_status", "normal")
 	if err != nil {
 		return err
 	}
 
-	err = b.sendMessageWithKeyboard(chatId, fmt.Sprintf("Отлично! Ваш заказ №%d отправлен в службу доставки. Когда ваш заказ примут, вам придет сообщение с данными о курьере.", order.Id), userMenuKeyboard)
+	err = b.sendMessageToDeliveryService(chatId)
 	if err != nil {
 		return err
 	}
 
-	err = b.sendMessageToDeliveryService(chatId)
+	err = b.sendMessageWithKeyboard(chatId, fmt.Sprintf("Отлично! Ваш заказ №%d отправлен в службу доставки. Когда ваш заказ примут, вам придет сообщение с данными о курьере.", order.Id), userMenuKeyboard)
 	if err != nil {
 		return err
 	}

@@ -53,6 +53,12 @@ type OrderRepo interface {
 	UpdateOrder(telegramId int64, field string, value string) error
 }
 
+type SubsidiaryRepo interface{
+	GetSubsidiary(cityName string) (models.Subsidiary, error)
+	GetSubsidiarys() ([]models.Subsidiary, error)
+}
+
+
 type Repository struct {
 	UsersRepo
 	CouriersRepo
@@ -60,15 +66,17 @@ type Repository struct {
 	ProductsRepo
 	ShopingCartRepo
 	OrderRepo
+	SubsidiaryRepo
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
-		UsersRepo:       NewUsersSQLite3(db),
-		CouriersRepo:    NewCourierSQLite3(db),
-		CouriersOrdersRepo: NewCouriersOrdersSQLite3(db),
-		ProductsRepo:    NewProductsSQLite3(db),
-		ShopingCartRepo: NewShopingCartSQLite3(db),
-		OrderRepo:       NewOrderSQLite3(db),
+		UsersRepo:       NewUsersPostgres(db),
+		CouriersRepo:    NewCourierPostgres(db),
+		CouriersOrdersRepo: NewCouriersOrdersPostgres(db),
+		ProductsRepo:    NewProductsPostgres(db),
+		ShopingCartRepo: NewShopingCartPostgres(db),
+		OrderRepo:       NewOrderPostgres(db),
+		SubsidiaryRepo: NewSubsidiaryPostgres(db),
 	}
 }

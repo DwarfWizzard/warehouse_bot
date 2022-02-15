@@ -1,7 +1,6 @@
 package service
 
 import (
-	"log"
 	"time"
 
 	"github.com/DwarfWizzard/warehouse_bot/pkg/models"
@@ -25,7 +24,6 @@ func (s *OrderService) GetOrderById(orderId int) (models.Order, error) {
 func (s *OrderService) GetOrderByUser(telegramId int64) (models.Order, error) {
 	var order models.Order
 	order, err := s.repo.GetOrderByUser(telegramId)
-	log.Println(err)
 	if err != nil && (err.Error() == "sql: no rows in result set" || order.Id == 0) {
 		date := time.Now().Format("02.01.2006 15:04:05")
 		orderCreate, err := s.repo.Create(telegramId, date)
