@@ -130,7 +130,7 @@ func (b *Bot) standartMessageRegistrationNumber(message *tgbotapi.Message) error
 		return err
 	}
 	
-	err = b.sendMessageWithKeyboard(chatId, "И теперь выберете город из списка.\nЕсли вашего города в списке нет, значит филлиала 'ПРОСТОРОС' пока что отсутвует.", kb)
+	err = b.sendMessageWithKeyboard(chatId, "И теперь выберете город из списка.\nЕсли вашего города в списке нет, значит филлиал 'ПРОСТОРОС' в нем пока что отсутвует.", kb)
 	if err != nil {
 		return err
 	}
@@ -364,7 +364,7 @@ func (b *Bot) standartMessageProfile(chatId int64) error {
 		return err
 	}
 
-	b.sendMessageWithKeyboard(chatId, fmt.Sprintf("Ваш профиль.\n\nИмя: %s\n\nНомер телефона: %s\nГород: %s\n\nРедактировать профиль?", user.Name, user.Number, user.City), editProfileBoard)
+	b.sendMessageWithKeyboard(chatId, fmt.Sprintf("Ваш профиль.\n\nИмя: %s\n\nНомер телефона: %s\n\nГород: %s\n\nРедактировать профиль?", user.Name, user.Number, user.City), editProfileBoard)
 	return nil
 }
 
