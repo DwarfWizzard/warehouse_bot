@@ -44,7 +44,7 @@ func (r *UsersPostgres) UpdateUser(telegramId int64, field string, value string)
 	_, err := r.db.Exec(query, value, telegramId)
 
 	if err != nil {
-		return fmt.Errorf("repository/UpdateCouriersOrders: [telegramId %d] [filed %s] [value %s] : %s", telegramId, field, value, err.Error())
+		return fmt.Errorf("repository/UpdateUser: [telegramId %d] [filed %s] [value %s] : %s", telegramId, field, value, err.Error())
 	}
 
 	return nil
