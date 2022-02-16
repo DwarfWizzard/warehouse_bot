@@ -126,11 +126,20 @@ func (b *Bot) callbackChangePage(callbackQuery *tgbotapi.CallbackQuery) error {
 		return err
 	}
 
-	prodOnPage, err := b.services.CountProductsOnPage((page - 2) * 5)
-
-	if err != nil {
-		return err
+	var prodOnPage int
+	if (page - 2) * 5 < 0 {
+		prodOnPage, err = b.services.CountProductsOnPage((page - 2) * -5)
+		if err != nil {
+			return err
+		}
+	} else {
+		prodOnPage, err = b.services.CountProductsOnPage((page - 2) * -5)
+		if err != nil {
+			return err
+		}
 	}
+
+	
 
 	for i := 0; i <= prodOnPage; i++ {
 		b.deleteMessage(chatId, callbackQuery.Message.MessageID-i)
