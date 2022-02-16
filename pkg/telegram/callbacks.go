@@ -370,7 +370,7 @@ func (b *Bot) callbackPlaceAnOrderNo(callbackQuery *tgbotapi.CallbackQuery) erro
 		return err
 	}
 
-	err = b.sendMessage(chatId, "Ваш заказ отменен")
+	err = b.sendMessageWithKeyboard(chatId, "Ваш заказ отменен", userMenuKeyboard)
 	if err != nil {
 		return err
 	}
