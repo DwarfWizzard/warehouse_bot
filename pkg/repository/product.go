@@ -58,7 +58,7 @@ func (r *ProductsPostgres) CountProducts() (int, error) {
 func (r *ProductsPostgres) CountProductsOnPage(offset int) (int, error) {
 	var count int
 
-	query := fmt.Sprintf("SELECT COUNT(*) FROM (SELECT * FROM %s LIMIT 5 OFFSET $1) AS x", productsTable)
+	query := fmt.Sprintf("SELECT COUNT(*) FROM (SELECT * FROM %s LIMIT 5 OFFSET ABS($1)) AS x", productsTable)
 	row := r.db.QueryRow(query, offset)
 
 	err := row.Scan(&count)

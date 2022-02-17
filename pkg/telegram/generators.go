@@ -23,7 +23,7 @@ func (b *Bot) generateProductListCardsMessages(products []models.Product, chatId
 					tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину по розничной цене", fmt.Sprintf("add_cart_kilo %d-%d-%s", product.Id, product.PriceKilo, "кг")),
 				),
 				tgbotapi.NewInlineKeyboardRow(
-					tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину по оптовой цене", fmt.Sprintf("add_cart_bag %d-%d-%s", product.Id, product.PriceBag, "мешок")),
+					tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину по оптовой цене", fmt.Sprintf("add_cart_bag %d-%d-%s", product.Id, product.PriceBag, "ящик/мешок")),
 				),
 			)
 			productsCards = append(productsCards, productCard)
@@ -40,12 +40,11 @@ func (b *Bot) generateProductListCardsMessages(products []models.Product, chatId
 					tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину по розничной цене", fmt.Sprintf("add_cart_kilo %d-%d-%s", product.Id, product.PriceKilo, "кг")),
 				),
 				tgbotapi.NewInlineKeyboardRow(
-					tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину по оптовой цене", fmt.Sprintf("add_cart_bag %d-%d-%s", product.Id, product.PriceBag, "мешок")),
+					tgbotapi.NewInlineKeyboardButtonData("Добавить в корзину по оптовой цене", fmt.Sprintf("add_cart_bag %d-%d-%s", product.Id, product.PriceBag, "ящик/мешок")),
 				),
 			)
 			productsCards = append(productsCards, productCard)
 		}
-
 	}
 	return productsCards
 }

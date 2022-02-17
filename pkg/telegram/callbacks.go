@@ -126,21 +126,11 @@ func (b *Bot) callbackChangePage(callbackQuery *tgbotapi.CallbackQuery) error {
 		return err
 	}
 
-	var prodOnPage int
-	if (page - 2) * 5 < 0 {
-		prodOnPage, err = b.services.CountProductsOnPage((page - 2) * -5)
-		if err != nil {
-			return err
-		}
-	} else {
-		prodOnPage, err = b.services.CountProductsOnPage((page - 2) * 5)
-		if err != nil {
-			return err
-		}
+	prodOnPage, err := b.services.CountProductsOnPage((page - 2) * 5)
+	if err != nil {
+		return err
 	}
-
 	
-
 	for i := 0; i <= prodOnPage; i++ {
 		b.deleteMessage(chatId, callbackQuery.Message.MessageID-i)
 	}
@@ -175,6 +165,7 @@ func (b *Bot) callbackAddToCart(callbackQuery *tgbotapi.CallbackQuery) error {
 	}
 
 	deliveryFormat := idPrice[2]
+	
 
 	order, err := b.services.GetOrderByUser(chatId)
 	if err != nil {
