@@ -133,7 +133,7 @@ func (b *Bot) callbackChangePage(callbackQuery *tgbotapi.CallbackQuery) error {
 			return err
 		}
 	} else {
-		prodOnPage, err = b.services.CountProductsOnPage((page - 2) * -5)
+		prodOnPage, err = b.services.CountProductsOnPage((page - 2) * 5)
 		if err != nil {
 			return err
 		}
