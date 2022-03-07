@@ -1,23 +1,88 @@
 package service
 
 import (
+	"os"
+
 	"github.com/DwarfWizzard/warehouse_bot/pkg/models"
 	"github.com/DwarfWizzard/warehouse_bot/pkg/repository"
 )
 
 type Users interface {
-	Create(telegramId int64) error
+	CreateUser(telegramId int64) error
 	GetUser(telegramId int64) (models.User, error)
-	UpdateUserName(telegramId int64, name string) error
-	UpdateUserNumber(telegramId int64, number string) error
+	UpdateUser(telegramId int64, field string, value string) error
+	DeleteUser(telegramId int64) error
+}
+
+type Couriers interface {
+	CreateCourier(telegramId int64) error
+	GetCourier(telegramId int64) (models.Courier, error)
+	UpdateCourier(telegramId int64, field string, value string) error
+}
+
+type CouriersOrders interface {
+	CreateCourierOrder(orderId int, courierId int) error
+	GetOrderCourier(orderId int) (models.Courier, error)
+	GetActiveOrders(courierId int) ([]models.Order, error)
+	GetCourierOrders(courierId int) ([]models.Order, error)
+	UpdateCourierOrder(orderId int, field string, value string) error
+}
+
+type Products interface {
+	GetProduct(productId int) (models.Product, error)
+	GetProducts(offset int) ([]models.Product, error)
+	CountProducts() (int, error)
+	CountProductsOnPage(offset int) (int, error)
+}
+
+type ShopingCart interface {
+	CreateCart(orderId int, productId int, productPrice int, deliveryFormat string) error 
+	GetProductsFromCart(orderId int) ([]models.Product, error)
+	GetCart(orderId int, productId int) (models.ShopingCart, error)
+	GetCarts(orderId int) ([]models.ShopingCart, error)
+	GetQuantity(orderId int, productId int) (int, error)
+	UpdateQuantity(orderId int, productId int, quantity int) error
+	DeleteCart(orderId int) error
+	DeleteProductFromCart(orderId int, productId int) error
+}
+
+type Order interface{
+	GetOrderById(orderId int) (models.Order, error)
+	GetOrderByUser(telegramId int64) (models.Order, error)
+	UpdateOrder(telegramId int64, field string, value string) error
+	GetOrderUser(orderId int) (models.User, error)
+	GetAllOrdersUser(userId int) ([]models.Order, error)
+}
+
+type Logger interface{
+	PrintLog(message string, flag int)
+}
+
+type Subsidiary interface{
+	GetSubsidiary(cityName string) (models.Subsidiary, error)
+	GetSubsidiarys() ([]models.Subsidiary, error)
 }
 
 type Service struct {
 	Users
+	Couriers
+	CouriersOrders
+	Products
+	ShopingCart
+	Order
+	Logger
+	Subsidiary
 }
 
-func NewService(repos *repository.Repository) *Service {
+func NewService(repos *repository.Repository, errLogFile *os.File) *Service {
 	return &Service{
 		Users: NewUserService(repos.UsersRepo),
+		Couriers: NewCourierService(repos.CouriersRepo),
+		CouriersOrders: NewCouriersOrdersService(repos.CouriersOrdersRepo),
+		Products: NewProductsService(repos.ProductsRepo),
+		ShopingCart: NewShopingCartService(repos.ShopingCartRepo),
+		Order: NewOrderService(repos.OrderRepo),
+		Logger: NewServiceLogger( errLogFile),
+		Subsidiary: NewSubsidaryService(repos.SubsidiaryRepo),
 	}
 }

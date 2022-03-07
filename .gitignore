@@ -1,1 +1,4 @@
 .env
+images/
+logs/
+*.mp4
