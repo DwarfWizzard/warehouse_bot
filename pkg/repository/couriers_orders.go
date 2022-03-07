@@ -17,7 +17,7 @@ func NewCouriersOrdersPostgres(db *sqlx.DB) *CouriersOrdersPostgres {
 	}
 }
 
-func (r *CouriersOrdersPostgres) Create(orderId int, courierId int) error {
+func (r *CouriersOrdersPostgres) Create(orderId int, courierId int, data string) error {
 	query := fmt.Sprintf("INSERT INTO %s (courier_id, order_id) VALUES ($1, $2)", couriersOrdersTable)
 	_, err := r.db.Exec(query, courierId, orderId)
 	if err != nil {

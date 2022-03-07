@@ -187,29 +187,31 @@ func (b *Bot) handleStandartMessages(message *tgbotapi.Message) error {
 		if err != nil {
 			return err
 		}
-		switch message.Text {
-		case "Каталог":
-			err := b.standartMessageCatalog(message.Chat.ID)
-			if err != nil {
-				return err
-			}
-		case "Корзина":
-			err := b.standartMessageShopingCart(message.Chat.ID)
-			if err != nil {
-				return err
-			}
-		case "История заказов":
-			err := b.standartMessageAllOrders(message.Chat.ID)
-			if err != nil {
-				return err
-			}
-		case "Профиль":
-			err := b.standartMessageProfile(message.Chat.ID)
-			if err != nil {
-				return err
+		
+		if user.DialogueStatus == "normal" {
+			switch message.Text {
+			case "Каталог":
+				err := b.standartMessageCatalog(message.Chat.ID)
+				if err != nil {
+					return err
+				}
+			case "Корзина":
+				err := b.standartMessageShopingCart(message.Chat.ID)
+				if err != nil {
+					return err
+				}
+			case "История заказов":
+				err := b.standartMessageAllOrders(message.Chat.ID)
+				if err != nil {
+					return err
+				}
+			case "Профиль":
+				err := b.standartMessageProfile(message.Chat.ID)
+				if err != nil {
+					return err
+				}
 			}
 		}
-
 		return nil
 	}
 
@@ -223,21 +225,23 @@ func (b *Bot) handleStandartMessages(message *tgbotapi.Message) error {
 			return err
 		}
 
+		if courier.DialogueStatus == "normal" {
 		switch message.Text {
-		case "Активные заказы":
-			err := b.standartMessageCourierActiveOrders(message.Chat.ID)
-			if err != nil {
-				return err
-			}
-		case "История заказов":
-			err := b.standartMessageCourierAllOrders(message.Chat.ID)
-			if err != nil {
-				return err
-			}
-		case "Профиль":
-			err := b.standartMessageCourierProfile(message.Chat.ID)
-			if err != nil {
-				return err
+			case "Активные заказы":
+				err := b.standartMessageCourierActiveOrders(message.Chat.ID)
+				if err != nil {
+					return err
+				}
+			case "История заказов":
+				err := b.standartMessageCourierAllOrders(message.Chat.ID)
+				if err != nil {
+					return err
+				}
+			case "Профиль":
+				err := b.standartMessageCourierProfile(message.Chat.ID)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}

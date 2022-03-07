@@ -19,7 +19,7 @@ type CouriersRepo interface {
 }
 
 type CouriersOrdersRepo interface {
-	Create(orderId int, courierId int) error
+	Create(orderId int, courierId int, data string) error
 	GetCourier(orderId int) (models.Courier, error)
 	GetActiveOrders(courierId int) ([]models.Order, error)
 	GetCourierOrders(courierId int) ([]models.Order, error)

@@ -2,6 +2,7 @@ package service
 
 import (
 	"strings"
+	"time"
 
 	"github.com/DwarfWizzard/warehouse_bot/pkg/models"
 	"github.com/DwarfWizzard/warehouse_bot/pkg/repository"
@@ -22,7 +23,7 @@ func (s *CourierOrderService) CreateCourierOrder(orderId int, courierId int) err
 	if err != nil && !strings.Contains(err.Error(), "sql: no rows in result set") {
 		return err
 	} else {
-		err := s.repo.Create(orderId, courierId)
+		err := s.repo.Create(orderId, courierId, time.Now().Format("02.01.2006 15:04:05"))
 		if err != nil {
 			return err
 		}
